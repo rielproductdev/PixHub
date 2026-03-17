@@ -1,0 +1,2386 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jornada de Aprendizado — API Hub PIX</title>
+    <style>
+        /* ========================================
+           RESET E BASE
+           ======================================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f1117;
+            color: #e1e4e8;
+            line-height: 1.7;
+        }
+
+        /* ========================================
+           LAYOUT PRINCIPAL
+           Sidebar fixa à esquerda + conteúdo à direita
+           ======================================== */
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ========================================
+           SIDEBAR (Menu Lateral)
+           ======================================== */
+        .sidebar {
+            width: 280px;
+            background-color: #161b22;
+            border-right: 1px solid #30363d;
+            padding: 24px 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid #30363d;
+            margin-bottom: 16px;
+        }
+
+        .sidebar-header h1 {
+            font-size: 16px;
+            color: #58a6ff;
+            font-weight: 600;
+        }
+
+        .sidebar-header p {
+            font-size: 12px;
+            color: #8b949e;
+            margin-top: 4px;
+        }
+
+        .sidebar-section {
+            padding: 8px 20px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #8b949e;
+            font-weight: 600;
+        }
+
+        .sidebar a {
+            display: block;
+            padding: 8px 20px;
+            color: #c9d1d9;
+            text-decoration: none;
+            font-size: 14px;
+            border-left: 3px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .sidebar a:hover {
+            background-color: #1f2937;
+            color: #58a6ff;
+            border-left-color: #58a6ff;
+        }
+
+        .sidebar a.active {
+            background-color: #1f2937;
+            color: #58a6ff;
+            border-left-color: #58a6ff;
+            font-weight: 600;
+        }
+
+        .sidebar a .page-number {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            line-height: 24px;
+            text-align: center;
+            background-color: #30363d;
+            border-radius: 6px;
+            font-size: 11px;
+            margin-right: 8px;
+            color: #8b949e;
+        }
+
+        .sidebar a.active .page-number {
+            background-color: #1f6feb;
+            color: #fff;
+        }
+
+        /* ========================================
+           CONTEUDO PRINCIPAL
+           ======================================== */
+        .content {
+            margin-left: 280px;
+            padding: 40px 60px;
+            max-width: 900px;
+            flex: 1;
+        }
+
+        /* ========================================
+           PAGINAS (cada seção de aprendizado)
+           ======================================== */
+        .page {
+            margin-bottom: 64px;
+            padding-bottom: 40px;
+            border-bottom: 1px solid #30363d;
+        }
+
+        .page:last-child {
+            border-bottom: none;
+        }
+
+        .page-header {
+            margin-bottom: 24px;
+        }
+
+        .page-header .badge {
+            display: inline-block;
+            padding: 2px 10px;
+            background-color: #1f6feb;
+            color: #fff;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .page-header .badge.conceito { background-color: #1f6feb; }
+        .page-header .badge.ferramenta { background-color: #238636; }
+        .page-header .badge.arquivo { background-color: #a371f7; }
+        .page-header .badge.arquitetura { background-color: #f0883e; }
+
+        .page-header h2 {
+            font-size: 28px;
+            color: #f0f6fc;
+            font-weight: 700;
+        }
+
+        .page-header .date {
+            font-size: 12px;
+            color: #8b949e;
+            margin-top: 4px;
+        }
+
+        /* ========================================
+           TIPOGRAFIA
+           ======================================== */
+        h3 {
+            font-size: 20px;
+            color: #f0f6fc;
+            margin: 28px 0 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #21262d;
+        }
+
+        h4 {
+            font-size: 16px;
+            color: #c9d1d9;
+            margin: 20px 0 8px;
+        }
+
+        p {
+            margin-bottom: 12px;
+            color: #c9d1d9;
+        }
+
+        strong {
+            color: #f0f6fc;
+        }
+
+        /* ========================================
+           ANALOGIAS (caixas de destaque)
+           ======================================== */
+        .analogia {
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-left: 4px solid #58a6ff;
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin: 16px 0;
+        }
+
+        .analogia .label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #58a6ff;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        /* ========================================
+           DICA / IMPORTANTE
+           ======================================== */
+        .dica {
+            background-color: #0d1f0d;
+            border: 1px solid #238636;
+            border-left: 4px solid #238636;
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin: 16px 0;
+        }
+
+        .dica .label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #3fb950;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .importante {
+            background-color: #2a1a00;
+            border: 1px solid #f0883e;
+            border-left: 4px solid #f0883e;
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin: 16px 0;
+        }
+
+        .importante .label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #f0883e;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        /* ========================================
+           TABELAS
+           ======================================== */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 14px;
+        }
+
+        th {
+            background-color: #161b22;
+            color: #f0f6fc;
+            text-align: left;
+            padding: 10px 14px;
+            border: 1px solid #30363d;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 10px 14px;
+            border: 1px solid #30363d;
+            color: #c9d1d9;
+        }
+
+        tr:hover td {
+            background-color: #161b22;
+        }
+
+        /* ========================================
+           BLOCOS DE CODIGO
+           ======================================== */
+        pre {
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 16px;
+            overflow-x: auto;
+            margin: 16px 0;
+        }
+
+        code {
+            font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+            font-size: 13px;
+            color: #e6edf3;
+        }
+
+        p code, li code, td code {
+            background-color: #1f2937;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #f0883e;
+        }
+
+        /* ========================================
+           LISTAS
+           ======================================== */
+        ul, ol {
+            margin: 8px 0 16px 24px;
+            color: #c9d1d9;
+        }
+
+        li {
+            margin-bottom: 6px;
+        }
+
+        /* ========================================
+           DIAGRAMA DE FLUXO (ASCII)
+           ======================================== */
+        .fluxo {
+            background-color: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 16px 0;
+            text-align: center;
+            font-family: 'Cascadia Code', monospace;
+            font-size: 13px;
+            color: #58a6ff;
+            line-height: 1.8;
+            white-space: pre;
+        }
+
+        /* ========================================
+           RESPONSIVE
+           ======================================== */
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            .content {
+                margin-left: 0;
+                padding: 24px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="layout">
+
+        <!-- ==========================================
+             SIDEBAR — Menu lateral com todas as páginas
+             Cada link aponta para uma seção da página.
+             Conforme o projeto avança, novas páginas
+             são adicionadas aqui.
+             ========================================== -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h1>Jornada de Aprendizado</h1>
+                <p>API Hub PIX — Caderno de Anotacoes</p>
+            </div>
+
+            <div class="sidebar-section">Fase 01 — Fundamentos</div>
+            <a href="#containers" class="active">
+                <span class="page-number">1</span> Containers e Docker
+            </a>
+            <a href="#gerenciador-dependencias">
+                <span class="page-number">2</span> Gerenciador de Dependencias
+            </a>
+            <a href="#pom-xml">
+                <span class="page-number">3</span> O arquivo pom.xml
+            </a>
+            <a href="#mensageria">
+                <span class="page-number">4</span> Mensageria e Kafka
+            </a>
+            <a href="#dependencias">
+                <span class="page-number">5</span> Como descobrir dependencias
+            </a>
+            <a href="#spring-boot">
+                <span class="page-number">6</span> Spring Boot e Annotations
+            </a>
+            <a href="#profiles">
+                <span class="page-number">7</span> Profiles e Ambientes
+            </a>
+            <a href="#flyway">
+                <span class="page-number">8</span> Flyway e Migrations
+            </a>
+            <a href="#spring-security">
+                <span class="page-number">9</span> Spring Security Basico
+            </a>
+            <a href="#dockerfile-multistage">
+                <span class="page-number">10</span> Dockerfile Multi-stage
+            </a>
+            <a href="#versoes-parent-pom">
+                <span class="page-number">11</span> Versoes e o Parent POM
+            </a>
+            <a href="#docker-compose-na-pratica">
+                <span class="page-number">12</span> Docker Compose na Pratica
+            </a>
+            <a href="#rotina-e-evolucao">
+                <span class="page-number">13</span> Rotina Diaria e Evolucao
+            </a>
+            <a href="#comandos-essenciais">
+                <span class="page-number">14</span> Comandos Essenciais
+            </a>
+            <a href="#camadas-da-aplicacao">
+                <span class="page-number">15</span> As Camadas da Aplicacao
+            </a>
+            <a href="#local-vs-nuvem">
+                <span class="page-number">16</span> Local vs Nuvem (Deploy)
+            </a>
+
+            <div class="sidebar-section" style="margin-top: 24px;">Links Uteis</div>
+            <a href="https://start.spring.io" target="_blank">Spring Initializr</a>
+            <a href="https://docs.spring.io/spring-boot/docs/current/reference/html/" target="_blank">Docs Spring Boot</a>
+            <a href="https://kafka.apache.org/documentation/" target="_blank">Docs Apache Kafka</a>
+        </nav>
+
+        <!-- ==========================================
+             CONTEUDO — Todas as páginas de aprendizado
+             ========================================== -->
+        <main class="content">
+
+            <!-- ==========================================
+                 PAGINA 1 — Containers e Docker
+                 ========================================== -->
+            <section class="page" id="containers">
+                <div class="page-header">
+                    <span class="badge conceito">Conceito</span>
+                    <h2>Containers e Docker</h2>
+                    <span class="date">Aprendido em 17/03/2026 — Fase 01</span>
+                </div>
+
+                <h3>O que e um Container?</h3>
+                <p>
+                    Imagine que voce quer rodar um banco de dados PostgreSQL no seu computador.
+                    Sem Docker, voce precisaria baixar o instalador, instalar no Windows,
+                    configurar porta, usuario e senha. Se algo der errado, desinstalar e uma
+                    dor de cabeca. Se um colega quer rodar o mesmo projeto, precisa repetir tudo.
+                </p>
+
+                <div class="analogia">
+                    <div class="label">Analogia</div>
+                    <p>
+                        <strong>Container e como uma "caixinha isolada"</strong> que ja vem com tudo
+                        configurado dentro. E como um mini-computador rodando dentro do seu computador,
+                        mas muito mais leve que uma maquina virtual.
+                    </p>
+                </div>
+
+                <p>Com Docker, ao inves de instalar PostgreSQL na maquina, voce roda:</p>
+                <pre><code>docker compose up</code></pre>
+                <p>
+                    E ele cria uma caixinha com PostgreSQL ja configurado, rodando, pronto pra usar.
+                    Quer parar? <code>docker compose down</code>.
+                    Quer recomecar do zero? Apaga o container e cria outro. Limpo, sem sujeira na sua maquina.
+                </p>
+
+                <h3>O que usamos com Docker neste projeto?</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Container</th>
+                            <th>O que faz</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>PostgreSQL</strong></td>
+                            <td>Banco de dados — armazena contas, transacoes, chaves PIX</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Apache Kafka</strong></td>
+                            <td>Sistema de mensageria — processa transacoes de forma assincrona</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Kafka UI</strong></td>
+                            <td>Interface visual para ver mensagens e topicos do Kafka no navegador</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="dica">
+                    <div class="label">Por que isso importa no mercado</div>
+                    <p>
+                        Toda empresa seria usa containers. Quando voce vai numa entrevista e diz
+                        "meu projeto roda com <code>docker compose up</code>", o entrevistador
+                        sabe que voce entende infraestrutura moderna.
+                    </p>
+                </div>
+            </section>
+
+            <!-- ==========================================
+                 PAGINA 2 — Gerenciador de Dependencias
+                 ========================================== -->
+            <section class="page" id="gerenciador-dependencias">
+                <div class="page-header">
+                    <span class="badge ferramenta">Ferramenta</span>
+                    <h2>Gerenciador de Dependencias (Maven)</h2>
+                    <span class="date">Aprendido em 17/03/2026 — Fase 01</span>
+                </div>
+
+                <h3>O que e um Gerenciador de Dependencias?</h3>
+                <p>
+                    Quando voce programa, voce nao escreve tudo do zero. Voce usa
+                    <strong>bibliotecas</strong> (tambem chamadas de "dependencias") que outras
+                    pessoas ja criaram. Exemplo: quer criar uma API REST? Usa o Spring Boot.
+                    Quer conectar num banco? Usa o driver PostgreSQL.
+                </p>
+
+                <p>
+                    <strong>Maven e quem baixa, organiza e atualiza essas bibliotecas pra voce.</strong>
+                </p>
+
+                <div class="analogia">
+                    <div class="label">Analogia — O Restaurante</div>
+                    <p>
+                        A <strong>linguagem (Java)</strong> = o cozinheiro (quem cozinha de verdade).<br>
+                        O <strong>gerenciador (Maven)</strong> = o gerente do restaurante (compra os
+                        ingredientes, organiza a cozinha, define a ordem de preparo dos pratos).<br><br>
+                        O gerente nao cozinha. O cozinheiro nao compra ingredientes.
+                        <strong>Sao independentes, mas trabalham juntos.</strong>
+                    </p>
+                </div>
+
+                <h3>Maven NAO e um plugin</h3>
+                <p>
+                    Plugin e algo que se instala <em>dentro</em> de outra ferramenta.
+                    Maven e uma <strong>ferramenta independente</strong> — voce instala separadamente
+                    no computador. O termo correto e <strong>gerenciador de pacotes/build</strong>.
+                </p>
+
+                <h3>Comparacao com Node.js</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Node.js (que voce conhece)</th>
+                            <th>Java (que vamos usar)</th>
+                            <th>O que faz</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>npm</code></td>
+                            <td><code>Maven</code></td>
+                            <td>Gerenciador</td>
+                        </tr>
+                        <tr>
+                            <td><code>package.json</code></td>
+                            <td><code>pom.xml</code></td>
+                            <td>Arquivo de configuracao</td>
+                        </tr>
+                        <tr>
+                            <td><code>node_modules/</code></td>
+                            <td><code>~/.m2/repository/</code></td>
+                            <td>Pasta de dependencias</td>
+                        </tr>
+                        <tr>
+                            <td><code>npm install</code></td>
+                            <td><code>mvn install</code></td>
+                            <td>Instalar dependencias</td>
+                        </tr>
+                        <tr>
+                            <td><code>npm start</code></td>
+                            <td><code>mvn spring-boot:run</code></td>
+                            <td>Rodar o projeto</td>
+                        </tr>
+                        <tr>
+                            <td><code>npm test</code></td>
+                            <td><code>mvn test</code></td>
+                            <td>Rodar testes</td>
+                        </tr>
+                        <tr>
+                            <td><code>npm run build</code></td>
+                            <td><code>mvn package</code></td>
+                            <td>Build para producao</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>O ciclo de vida do Maven</h3>
+                <p>Quando voce roda <code>mvn package</code>, o Maven executa tudo em ordem:</p>
+                <pre><code>1. validate   → "O projeto esta configurado certo?"
+2. compile    → "Java, compile o codigo!"
+3. test       → "Java, rode os testes!"
+4. package    → "Empacote tudo num .jar!"
+5. verify     → "JaCoCo, a cobertura passou de 80%?"
+6. install    → "Salve o .jar no repositorio local"
+7. deploy     → "Envie para o servidor remoto"</code></pre>
+
+                <h3>Cada linguagem tem o seu</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Linguagem</th>
+                            <th>Gerenciador</th>
+                            <th>Arquivo de config</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Java</td><td><strong>Maven</strong> (ou Gradle)</td><td>pom.xml</td></tr>
+                        <tr><td>JavaScript</td><td><strong>npm</strong> (ou yarn)</td><td>package.json</td></tr>
+                        <tr><td>Python</td><td><strong>pip</strong> (ou poetry)</td><td>requirements.txt</td></tr>
+                        <tr><td>Rust</td><td><strong>Cargo</strong></td><td>Cargo.toml</td></tr>
+                        <tr><td>Go</td><td><strong>Go Modules</strong></td><td>go.mod</td></tr>
+                        <tr><td>PHP</td><td><strong>Composer</strong></td><td>composer.json</td></tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- ==========================================
+                 PAGINA 3 — O arquivo pom.xml
+                 ========================================== -->
+            <section class="page" id="pom-xml">
+                <div class="page-header">
+                    <span class="badge arquivo">Arquivo</span>
+                    <h2>O arquivo pom.xml</h2>
+                    <span class="date">Aprendido em 17/03/2026 — Fase 01</span>
+                </div>
+
+                <h3>POM = Project Object Model</h3>
+                <p>
+                    O <code>pom.xml</code> e o <strong>"RG" do projeto Java</strong>.
+                    E um arquivo XML que descreve tudo sobre o projeto para o Maven:
+                    quem e, qual Java usa, do que precisa, como e construido.
+                </p>
+                <p>
+                    Se no Node.js o <code>package.json</code> diz "quem sou eu e do que preciso",
+                    o <code>pom.xml</code> faz exatamente a mesma coisa pro Java.
+                </p>
+
+                <h3>Estrutura basica</h3>
+                <pre><code>&lt;!-- 1. QUEM SOU EU? (identidade do projeto) --&gt;
+&lt;groupId&gt;com.riel&lt;/groupId&gt;          &lt;!-- "dono" do projeto --&gt;
+&lt;artifactId&gt;pixhub&lt;/artifactId&gt;      &lt;!-- nome do projeto --&gt;
+&lt;version&gt;1.0.0&lt;/version&gt;             &lt;!-- versao atual --&gt;
+
+&lt;!-- 2. QUAL JAVA EU USO? --&gt;
+&lt;java.version&gt;17&lt;/java.version&gt;
+
+&lt;!-- 3. DO QUE EU PRECISO? (dependencias) --&gt;
+&lt;dependencies&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+&lt;/dependencies&gt;
+
+&lt;!-- 4. COMO EU SOU CONSTRUIDO? (plugins) --&gt;
+&lt;plugins&gt;
+    &lt;plugin&gt;jacoco-maven-plugin&lt;/plugin&gt;
+&lt;/plugins&gt;</code></pre>
+
+                <h3>Comparacao direta</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>package.json</th>
+                            <th>pom.xml</th>
+                            <th>O que faz</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>"name": "pixhub"</code></td>
+                            <td><code>&lt;artifactId&gt;pixhub&lt;/artifactId&gt;</code></td>
+                            <td>Nome do projeto</td>
+                        </tr>
+                        <tr>
+                            <td><code>"version": "1.0.0"</code></td>
+                            <td><code>&lt;version&gt;1.0.0&lt;/version&gt;</code></td>
+                            <td>Versao</td>
+                        </tr>
+                        <tr>
+                            <td><code>"dependencies": {...}</code></td>
+                            <td><code>&lt;dependencies&gt;...&lt;/dependencies&gt;</code></td>
+                            <td>Bibliotecas do projeto</td>
+                        </tr>
+                        <tr>
+                            <td><code>"devDependencies": {...}</code></td>
+                            <td><code>&lt;scope&gt;test&lt;/scope&gt;</code></td>
+                            <td>Bibliotecas so para testes</td>
+                        </tr>
+                        <tr>
+                            <td><code>"scripts": {...}</code></td>
+                            <td><code>&lt;plugins&gt;...&lt;/plugins&gt;</code></td>
+                            <td>Comandos de build/test</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="importante">
+                    <div class="label">Importante</div>
+                    <p>
+                        O <code>pom.xml</code> e o <strong>primeiro arquivo</strong> que vamos criar
+                        no projeto. Sem ele, o Maven nao sabe o que fazer — e como rodar
+                        <code>npm install</code> sem ter um <code>package.json</code>.
+                    </p>
+                </div>
+            </section>
+
+            <!-- ==========================================
+                 PAGINA 4 — Mensageria e Kafka
+                 ========================================== -->
+            <section class="page" id="mensageria">
+                <div class="page-header">
+                    <span class="badge conceito">Conceito</span>
+                    <h2>Mensageria e Apache Kafka</h2>
+                    <span class="date">Aprendido em 17/03/2026 — Fase 01</span>
+                </div>
+
+                <h3>O que e Mensageria?</h3>
+                <p>
+                    Imagine uma loja online. Quando o cliente clica "Pagar", o sistema precisa:
+                    validar o cartao, descontar do estoque, enviar email, gerar nota fiscal e
+                    notificar o entregador.
+                </p>
+
+                <h4>Sem mensageria (sincrono)</h4>
+                <p>
+                    O cliente clica "Pagar" e fica esperando a tela carregar enquanto o sistema
+                    faz TUDO, um atras do outro. Se o email estiver lento, o cliente espera.
+                    Se a nota fiscal falhar, tudo falha.
+                </p>
+
+                <h4>Com mensageria (assincrono)</h4>
+                <p>
+                    O cliente clica "Pagar", o sistema faz so o essencial (validar cartao + descontar estoque),
+                    responde <strong>"Pagamento recebido!"</strong> e coloca recados numa fila dizendo
+                    "mande o email", "gere a nota". Cada servico pega seu recado e processa no seu tempo.
+                </p>
+
+                <div class="analogia">
+                    <div class="label">Analogia — Sistema de Correios</div>
+                    <p>
+                        <strong>Kafka</strong> = o carteiro<br>
+                        <strong>Mensageria</strong> = o sistema de correios<br>
+                        <strong>Kafka UI</strong> = o painel de rastreamento onde voce acompanha todas as entregas<br><br>
+                        O <strong>produtor</strong> escreve uma mensagem e coloca na caixa de correio.
+                        O <strong>consumidor</strong> pega a mensagem quando estiver pronto e executa.
+                    </p>
+                </div>
+
+                <h3>Como funciona no nosso projeto PIX</h3>
+                <div class="fluxo">
+Usuario clica "Enviar PIX"
+         |
+         v
+   API recebe e valida
+   Cria transacao PENDENTE
+   Coloca mensagem no Kafka
+         |
+         v
+   Responde: "PIX recebido, processando..."
+   (usuario nao fica esperando)
+
+   --- Por tras dos panos (assincrono) ---
+
+   Consumer pega mensagem do Kafka
+         |
+         v
+   Valida saldo → Debita/Credita
+         |
+         v
+   PENDENTE → CONCLUIDO
+         |
+         v
+   Outra mensagem: "avise o recebedor"
+         |
+         v
+   Webhook/notificacao disparado
+                </div>
+
+                <div class="dica">
+                    <div class="label">Por que o PIX real funciona assim</div>
+                    <p>
+                        O BACEN processa <strong>milhoes</strong> de transacoes por dia. Se cada uma
+                        tivesse que esperar todas as etapas antes de responder, o sistema travaria.
+                        Com mensageria, ele recebe, coloca na fila, e responde em menos de 2 segundos.
+                    </p>
+                </div>
+
+                <h3>O que e o Kafka UI?</h3>
+                <p>
+                    Kafka por si so roda no terminal, sem interface visual. O <strong>Kafka UI</strong>
+                    e uma pagina web (painel administrativo) onde voce ve tudo que acontece dentro do Kafka:
+                </p>
+                <ul>
+                    <li><strong>Topicos</strong> — as "caixas de correio" que existem</li>
+                    <li><strong>Mensagens</strong> — o conteudo enviado (ex: "transacao X criada")</li>
+                    <li><strong>Consumer groups</strong> — quem esta consumindo as mensagens</li>
+                    <li><strong>Lag</strong> — se tem mensagens acumulando sem processar</li>
+                </ul>
+                <p>
+                    Voce acessa em <code>localhost:8090</code> no navegador. E puramente para
+                    desenvolvimento e monitoramento.
+                </p>
+
+                <div class="importante">
+                    <div class="label">Por que Kafka e nao RabbitMQ</div>
+                    <p>
+                        Kafka e o padrao de mercado em fintechs e bancos digitais.
+                        Itau, Nubank, PicPay e Inter todos usam Kafka.
+                        E o que as vagas em Squad Banking pedem.
+                    </p>
+                </div>
+            </section>
+
+            <!-- ==========================================
+                 PAGINA 5 — Como descobrir dependencias
+                 ========================================== -->
+            <section class="page" id="dependencias">
+                <div class="page-header">
+                    <span class="badge conceito">Conceito</span>
+                    <h2>Como descobrir quais dependencias um projeto precisa</h2>
+                    <span class="date">Aprendido em 17/03/2026 — Fase 01</span>
+                </div>
+
+                <h3>Voce NAO descobre tudo de uma vez</h3>
+                <p>
+                    Ninguem olha para um projeto e sabe instantaneamente que precisa de 16 dependencias.
+                    Voce descobre <strong>conforme a necessidade aparece</strong>:
+                </p>
+
+                <h4>Exemplo de como seria na pratica</h4>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Dia</th>
+                            <th>Problema</th>
+                            <th>Pesquisa</th>
+                            <th>Dependencia descoberta</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>"Quero criar uma API REST"</td>
+                            <td>"how to create REST API Java"</td>
+                            <td><code>spring-boot-starter-web</code></td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>"Preciso salvar dados num banco"</td>
+                            <td>"Spring Boot connect database"</td>
+                            <td><code>data-jpa</code> + <code>postgresql</code></td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td>"O banco mudou e perdi dados"</td>
+                            <td>"database migration Spring Boot"</td>
+                            <td><code>flyway-core</code></td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td>"Preciso proteger com login"</td>
+                            <td>"Spring Boot authentication"</td>
+                            <td><code>security</code> + <code>jjwt</code></td>
+                        </tr>
+                        <tr>
+                            <td>5</td>
+                            <td>"Muito getter/setter repetitivo"</td>
+                            <td>"reduce boilerplate Java"</td>
+                            <td><code>lombok</code></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>As 3 formas de descobrir</h3>
+                <ol>
+                    <li>
+                        <strong>A documentacao oficial te diz</strong> —
+                        A doc do Spring Boot diz: "Para usar JPA, adicione <code>spring-boot-starter-data-jpa</code>".
+                        Nao e adivinhacao.
+                    </li>
+                    <li>
+                        <strong>A experiencia acumula</strong> —
+                        Depois de 2-3 projetos, voce ja sabe de cabeca quais dependencias cada problema exige.
+                    </li>
+                    <li>
+                        <strong>O Spring Initializr facilita</strong> —
+                        O site <a href="https://start.spring.io" target="_blank" style="color: #58a6ff;">start.spring.io</a>
+                        tem checkboxes — voce marca o que quer e ele gera o <code>pom.xml</code> pronto.
+                    </li>
+                </ol>
+
+                <h3>Mapa completo do nosso projeto</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Requisito</th>
+                            <th>Dependencia</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>API REST</td><td><code>spring-boot-starter-web</code></td></tr>
+                        <tr><td>Banco de dados</td><td><code>data-jpa</code> + <code>postgresql</code></td></tr>
+                        <tr><td>Migrations</td><td><code>flyway-core</code></td></tr>
+                        <tr><td>Autenticacao</td><td><code>security</code> + <code>jjwt</code></td></tr>
+                        <tr><td>Validacao de dados</td><td><code>validation</code></td></tr>
+                        <tr><td>Monitoramento</td><td><code>actuator</code></td></tr>
+                        <tr><td>Mensageria</td><td><code>spring-kafka</code></td></tr>
+                        <tr><td>Documentacao</td><td><code>springdoc-openapi</code></td></tr>
+                        <tr><td>Menos codigo repetitivo</td><td><code>lombok</code></td></tr>
+                        <tr><td>Conversao DTO/Entity</td><td><code>mapstruct</code></td></tr>
+                        <tr><td>Testes</td><td><code>starter-test</code> + <code>testcontainers</code></td></tr>
+                        <tr><td>Cobertura de testes</td><td><code>jacoco</code></td></tr>
+                    </tbody>
+                </table>
+
+                <div class="analogia">
+                    <div class="label">Analogia</div>
+                    <p>
+                        E como um cozinheiro experiente que ja sabe os ingredientes antes de abrir a receita.
+                        Ele olha o prato ("API PIX com autenticacao, banco e mensageria") e ja sabe:
+                        "vou precisar de Spring Boot, PostgreSQL, Kafka, JWT..."
+                    </p>
+                </div>
+            </section>
+
+            <!-- ==========================================
+                 PAGINA 6 — Spring Boot e Annotations
+                 ========================================== -->
+            <section class="page" id="spring-boot">
+                <div class="page-header">
+                    <span class="badge conceito">Conceito</span>
+                    <h2>Spring Boot e Annotations</h2>
+                    <span class="date">Aprendido em 17/03/2026 — Fase 01</span>
+                </div>
+
+                <h3>O que e o Spring Boot?</h3>
+                <p>
+                    Spring Boot e um framework que facilita a criacao de aplicacoes Java.
+                    Sem ele, voce teria que configurar manualmente: servidor web, conexao com banco,
+                    serialização JSON, injecao de dependencias... Com Spring Boot, tudo vem
+                    <strong>pre-configurado</strong> e pronto para usar.
+                </p>
+
+                <div class="analogia">
+                    <div class="label">Analogia — Carro Automatico vs Manual</div>
+                    <p>
+                        <strong>Java puro</strong> = carro manual. Voce controla tudo: embreagem, marcha, acelerador.<br>
+                        <strong>Spring Boot</strong> = carro automatico. Ele faz as trocas de marcha sozinho.
+                        Voce so precisa dizer "quero ir pra frente" e ele resolve o resto.<br><br>
+                        A <strong>auto-configuracao</strong> do Spring Boot detecta o que esta no classpath
+                        (ex: viu o driver PostgreSQL? configura a conexao automaticamente).
+                    </p>
+                </div>
+
+                <h3>O que sao Annotations?</h3>
+                <p>
+                    Annotations sao "etiquetas" que voce cola nas classes e metodos para dizer ao
+                    Spring o que eles fazem. Comecam com <code>@</code>.
+                </p>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Annotation</th>
+                            <th>O que faz</th>
+                            <th>Onde usar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>@SpringBootApplication</code></td>
+                            <td>Classe principal — combina 3 annotations (Config + AutoConfig + ComponentScan)</td>
+                            <td><code>PixHubApplication.java</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>@RestController</code></td>
+                            <td>Marca uma classe como endpoint REST (recebe e responde HTTP)</td>
+                            <td>Classes em <code>controller/</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>@Service</code></td>
+                            <td>Marca uma classe como logica de negocio</td>
+                            <td>Classes em <code>service/</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>@Repository</code></td>
+                            <td>Marca uma classe como acesso ao banco</td>
+                            <td>Interfaces em <code>repository/</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>@Configuration</code></td>
+                            <td>Marca uma classe como fonte de configuracoes (beans)</td>
+                            <td>Classes em <code>config/</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>@Bean</code></td>
+                            <td>Registra o objeto retornado no container do Spring</td>
+                            <td>Metodos dentro de <code>@Configuration</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>@Entity</code></td>
+                            <td>Mapeia uma classe Java para uma tabela no banco</td>
+                            <td>Classes em <code>entity/</code></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Injecao de Dependencia (DI)</h3>
+                <p>
+                    E o padrao mais importante do Spring. Em vez de voce criar objetos manualmente
+                    (<code>new PixService()</code>), o Spring cria e entrega automaticamente.
+                </p>
+
+                <pre><code>// SEM injecao de dependencia (manual, ruim):
+PixService service = new PixService(new PixRepository(...));
+
+// COM injecao de dependencia (Spring faz tudo):
+@Service
+public class PixService {
+    private final PixRepository repository;
+
+    // Spring detecta que PixRepository é necessario
+    // e injeta automaticamente pelo construtor
+    public PixService(PixRepository repository) {
+        this.repository = repository;
+    }
+}</code></pre>
+
+                <div class="dica">
+                    <div class="label">Por que isso importa</div>
+                    <p>
+                        Injecao de dependencia facilita testes (troca a dependencia real por um mock),
+                        desacopla as camadas e e o padrao #1 perguntado em entrevistas Java.
+                    </p>
+                </div>
+            </section>
+
+            <!-- ==========================================
+                 PAGINA 7 — Profiles e Ambientes
+                 ========================================== -->
+            <section class="page" id="profiles">
+                <div class="page-header">
+                    <span class="badge arquitetura">Arquitetura</span>
+                    <h2>Profiles e Ambientes</h2>
+                    <span class="date">Aprendido em 17/03/2026 — Fase 01</span>
+                </div>
+
+                <h3>O problema</h3>
+                <p>
+                    Em desenvolvimento, o banco roda em <code>localhost:5432</code> com senha
+                    <code>pixhub_dev</code>. Em producao, roda em outro servidor com outra senha.
+                    Como a MESMA aplicacao sabe qual configuracao usar?
+                </p>
+
+                <h3>A solucao: Profiles</h3>
+                <p>
+                    Spring Boot carrega <strong>arquivos de configuracao diferentes</strong>
+                    dependendo do profile ativo:
+                </p>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Profile</th>
+                            <th>Arquivo</th>
+                            <th>Quando usar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>dev</code></td>
+                            <td><code>application-dev.yml</code></td>
+                            <td>Desenvolvimento local (Docker Compose)</td>
+                        </tr>
+                        <tr>
+                            <td><code>test</code></td>
+                            <td><code>application-test.yml</code></td>
+                            <td>Testes automatizados (Testcontainers)</td>
+                        </tr>
+                        <tr>
+                            <td><code>prod</code></td>
+                            <td><code>application-prod.yml</code></td>
+                            <td>Producao (variaveis de ambiente)</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <pre><code># Ativar profile via terminal:
+SPRING_PROFILES_ACTIVE=prod mvn spring-boot:run
+
+# Ou via application.yml (padrao):
+spring:
+  profiles:
+    active: dev</code></pre>
+
+                <div class="analogia">
+                    <div class="label">Analogia — Modo do Carro</div>
+                    <p>
+                        <strong>Profile dev</strong> = modo "cidade" (conforto, mais logs, banco local).<br>
+                        <strong>Profile prod</strong> = modo "estrada" (performance, menos logs, banco remoto).<br>
+                        O carro e o mesmo, so muda o comportamento.
+                    </p>
+                </div>
+
+                <div class="importante">
+                    <div class="label">Regra de ouro</div>
+                    <p>
+                        <strong>NUNCA</strong> coloque senhas reais no codigo. O profile <code>prod</code>
+                        usa <code>${DATABASE_PASSWORD}</code> — o valor vem de variavel de ambiente,
+                        injetada pelo Docker ou servidor no momento do deploy.
+                    </p>
+                </div>
+            </section>
+
+            <!-- ==========================================
+                 PAGINA 8 — Flyway e Migrations
+                 ========================================== -->
+            <section class="page" id="flyway">
+                <div class="page-header">
+                    <span class="badge ferramenta">Ferramenta</span>
+                    <h2>Flyway e Migrations</h2>
+                    <span class="date">Aprendido em 17/03/2026 — Fase 01</span>
+                </div>
+
+                <h3>O problema</h3>
+                <p>
+                    Voce cria uma tabela no banco. Semana seguinte, precisa adicionar uma coluna.
+                    Mes seguinte, precisa renomear outra. Como garantir que o banco do seu colega,
+                    do servidor de teste e da producao estao todos na mesma versao?
+                </p>
+
+                <h3>A solucao: Migrations versionadas</h3>
+                <p>
+                    <strong>Flyway</strong> e um "git para o banco de dados". Voce cria arquivos SQL
+                    com numeracao sequencial, e ele aplica na ordem certa.
+                </p>
+
+                <pre><code>db/migration/
+├── V1__create_schema.sql        ← Cria tabelas iniciais
+├── V2__add_users_table.sql      ← Adiciona tabela de usuarios
+├── V3__add_email_to_users.sql   ← Adiciona coluna email
+└── V4__create_pix_keys.sql      ← Cria tabela de chaves PIX</code></pre>
+
+                <div class="analogia">
+                    <div class="label">Analogia — Commits do Git</div>
+                    <p>
+                        Assim como voce nunca edita um commit antigo no git (faz um novo commit),
+                        voce <strong>nunca altera uma migration ja executada</strong>.
+                        Precisa mudar algo? Cria uma nova migration (V5, V6...).
+                        O Flyway rastreia quais migrations ja rodaram na tabela
+                        <code>flyway_schema_history</code>.
+                    </p>
+                </div>
+
+                <h3>Convencao de nomes</h3>
+                <pre><code>V1__create_schema.sql
+│ │              │
+│ │              └── Descricao (separada por underscores)
+│ └──────────────── DOIS underscores (obrigatorio!)
+└────────────────── V + numero da versao</code></pre>
+
+                <div class="dica">
+                    <div class="label">Flyway vs ddl-auto</div>
+                    <p>
+                        O Hibernate tem <code>ddl-auto=update</code> que altera o banco automaticamente.
+                        <strong>NUNCA use em producao</strong> — ele pode deletar colunas ou perder dados.
+                        Flyway e o jeito seguro e profissional. Por isso usamos
+                        <code>ddl-auto=validate</code> (so confere, nao mexe).
+                    </p>
+                </div>
+            </section>
+
+            <!-- ==========================================
+                 PAGINA 9 — Spring Security Basico
+                 ========================================== -->
+            <section class="page" id="spring-security">
+                <div class="page-header">
+                    <span class="badge conceito">Conceito</span>
+                    <h2>Spring Security Basico</h2>
+                    <span class="date">Aprendido em 17/03/2026 — Fase 01</span>
+                </div>
+
+                <h3>O que e Spring Security?</h3>
+                <p>
+                    E o framework que controla <strong>quem pode acessar o que</strong> na sua API.
+                    Dois conceitos principais:
+                </p>
+                <ul>
+                    <li><strong>Autenticacao</strong> — "Quem e voce?" (login, token JWT)</li>
+                    <li><strong>Autorizacao</strong> — "O que voce pode fazer?" (roles, permissoes)</li>
+                </ul>
+
+                <h3>Como funciona: Filter Chain</h3>
+                <p>
+                    Toda requisicao HTTP passa por uma <strong>cadeia de filtros</strong> antes
+                    de chegar no controller. Cada filtro decide: "deixo passar ou bloqueio?"
+                </p>
+
+                <div class="fluxo">
+Request HTTP
+     |
+     v
+[CSRF Filter] → desabilitado (API REST stateless)
+     |
+     v
+[Auth Filter] → valida JWT token (sera implementado na Fase Auth)
+     |
+     v
+[Authorization] → verifica se o endpoint é publico ou protegido
+     |
+     v
+Controller (se passou em todos os filtros)
+                </div>
+
+                <h3>Configuracao STATELESS</h3>
+                <p>
+                    Em APIs REST, o servidor <strong>nao guarda sessao</strong>. Cada request
+                    precisa trazer sua propria autenticacao (token JWT no header).
+                    Isso permite escalar horizontalmente — qualquer servidor pode atender
+                    qualquer request, sem precisar compartilhar sessao.
+                </p>
+
+                <pre><code>// Desabilita sessao — cada request e independente
+.sessionManagement(session ->
+    session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+)
+
+// Endpoints publicos (sem autenticacao):
+.requestMatchers("/actuator/**", "/swagger-ui/**").permitAll()
+
+// Tudo mais requer autenticacao:
+.anyRequest().authenticated()</code></pre>
+
+                <div class="importante">
+                    <div class="label">CSRF desabilitado — quando e seguro?</div>
+                    <p>
+                        CSRF protege contra ataques em apps com cookies/sessao.
+                        APIs REST stateless usam JWT no header <code>Authorization</code>,
+                        nao cookies. Sem cookie = sem CSRF. Por isso desabilitamos.
+                        Em aplicacoes com formularios HTML e sessao, <strong>NUNCA desabilite</strong>.
+                    </p>
+                </div>
+            </section>
+
+            <!-- ==========================================
+                 PAGINA 10 — Dockerfile Multi-stage
+                 ========================================== -->
+            <section class="page" id="dockerfile-multistage">
+                <div class="page-header">
+                    <span class="badge arquitetura">Arquitetura</span>
+                    <h2>Dockerfile Multi-stage</h2>
+                    <span class="date">Aprendido em 17/03/2026 — Fase 01</span>
+                </div>
+
+                <h3>O problema</h3>
+                <p>
+                    Para compilar Java, precisamos do JDK (800MB+) e do Maven.
+                    Mas para RODAR, so precisamos do JRE (200MB).
+                    Se colocarmos tudo numa imagem so, ela fica enorme e cheia de
+                    ferramentas desnecessarias (risco de seguranca).
+                </p>
+
+                <h3>A solucao: Multi-stage build</h3>
+                <p>
+                    O Dockerfile tem <strong>duas etapas</strong>. A primeira compila,
+                    a segunda so roda. A imagem final nao tem Maven, nem codigo-fonte,
+                    nem dependencias de compilacao.
+                </p>
+
+                <div class="fluxo">
+ETAPA 1 — BUILD (Maven + JDK)
+  Copia pom.xml → Baixa dependencias
+  Copia src/ → Compila → Gera .jar
+          |
+          v (COPY --from=build)
+ETAPA 2 — RUNTIME (apenas JRE)
+  Copia APENAS o .jar
+  Imagem final: ~300MB (vs ~800MB)
+                </div>
+
+                <h3>Truque do cache de dependencias</h3>
+                <pre><code># 1. Copia APENAS o pom.xml primeiro
+COPY pom.xml .
+RUN mvn dependency:go-offline -B
+
+# 2. SO DEPOIS copia o codigo-fonte
+COPY src ./src
+RUN mvn package -DskipTests -B</code></pre>
+
+                <p>
+                    Docker cacheia cada camada (instrucao). Se o <code>pom.xml</code> nao mudou,
+                    as dependencias ja estao no cache. Quando voce muda so o codigo Java,
+                    o Docker pula o download e vai direto para a compilacao.
+                    Resultado: rebuild em segundos em vez de minutos.
+                </p>
+
+                <div class="dica">
+                    <div class="label">Na pratica</div>
+                    <p>
+                        Empresas medem o tempo de build do CI/CD. Um Dockerfile otimizado
+                        com cache de dependencias reduz deploys de 10 minutos para 2.
+                        Esse tipo de otimizacao mostra maturidade tecnica em entrevistas.
+                    </p>
+                </div>
+            </section>
+
+            <!-- ==========================================
+                 PAGINA 11 — Compatibilidade de Versoes e o Parent POM
+                 ========================================== -->
+            <section class="page" id="versoes-parent-pom">
+                <div class="page-header">
+                    <span class="badge conceito">Conceito</span>
+                    <h2>Compatibilidade de Versoes e o Parent POM</h2>
+                    <span class="date">Aprendido em 17/03/2026 — Fase 01 (primeiro bug real!)</span>
+                </div>
+
+                <h3>O que aconteceu</h3>
+                <p>
+                    Ao rodar <code>mvn clean compile</code> pela primeira vez, o Maven retornou erro:
+                </p>
+                <pre><code>[ERROR] 'dependencies.dependency.version' for
+  org.flywaydb:flyway-database-postgresql:jar is missing.
+  @ line 160, column 21</code></pre>
+                <p>
+                    Tinhamos adicionado a dependencia <code>flyway-database-postgresql</code> no
+                    <code>pom.xml</code> sem especificar a versao, esperando que o Spring Boot
+                    resolvesse automaticamente. Mas o Maven nao sabia qual versao usar e quebrou.
+                </p>
+
+                <h3>Por que aconteceu</h3>
+                <p>
+                    O <code>spring-boot-starter-parent</code> que declaramos no topo do <code>pom.xml</code>
+                    funciona como um "catalogo de versoes". Ele diz:
+                    <em>"Se voce usar Spring Security, use a versao 6.2.4. Se usar Flyway, use a 9.22.3."</em>
+                </p>
+                <p>
+                    O problema: nosso projeto usa <strong>Spring Boot 3.2.5</strong>, que gerencia
+                    <strong>Flyway 9.x</strong>. Na versao 9 do Flyway, o suporte a PostgreSQL ja vem
+                    dentro do <code>flyway-core</code>. O modulo separado
+                    <code>flyway-database-postgresql</code> so foi criado no <strong>Flyway 10+</strong>
+                    (que vem com Spring Boot 3.3+).
+                </p>
+                <p>
+                    Ou seja: tentamos usar uma dependencia que <strong>nao existia</strong> na versao
+                    que o Spring Boot conhecia.
+                </p>
+
+                <div class="analogia">
+                    <div class="label">Analogia — Cardapio do Restaurante</div>
+                    <p>
+                        O <strong>Parent POM</strong> e o cardapio do restaurante. Ele lista todos os
+                        pratos (dependencias) disponiveis e seus precos (versoes).<br><br>
+                        Quando voce pede "flyway-core", o garcom (Maven) olha no cardapio, acha o
+                        prato e sabe exatamente qual versao servir.<br><br>
+                        Quando voce pede "flyway-database-postgresql", o garcom olha no cardapio e...
+                        <strong>nao encontra</strong>. Esse prato nao existe neste cardapio.
+                        Ele para e pergunta: <em>"Qual versao voce quer?"</em> — e como voce nao
+                        especificou, ele nao consegue servir. Erro.
+                    </p>
+                </div>
+
+                <h3>Como resolver</h3>
+                <p>Existiam duas opcoes:</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Opcao</th>
+                            <th>Quando usar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Remover a dependencia</strong> (o que fizemos)</td>
+                            <td>Quando ela nao existe na versao do ecossistema que voce usa</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Adicionar <code>&lt;version&gt;</code> manualmente</strong></td>
+                            <td>Quando voce precisa de uma dependencia que o parent nao gerencia</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Como investigar: o BOM</h3>
+                <p>
+                    BOM = <strong>Bill of Materials</strong> (lista de materiais).
+                    E o arquivo que lista TODAS as versoes que o Spring Boot gerencia.
+                    Para ver quais dependencias o Spring Boot 3.2.5 gerencia:
+                </p>
+                <ol>
+                    <li>Acesse a documentacao do Spring Boot na versao que voce usa</li>
+                    <li>Procure "Dependency Versions" — la esta a lista completa</li>
+                    <li>Se a dependencia esta na lista, <strong>nao precisa colocar versao</strong></li>
+                    <li>Se nao esta, voce <strong>precisa declarar a versao</strong> no <code>pom.xml</code></li>
+                </ol>
+                <pre><code>&lt;!-- Dependencia gerenciada pelo parent (NAO precisa de versao): --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.flywaydb&lt;/groupId&gt;
+    &lt;artifactId&gt;flyway-core&lt;/artifactId&gt;
+    &lt;!-- versao vem do parent automaticamente --&gt;
+&lt;/dependency&gt;
+
+&lt;!-- Dependencia NAO gerenciada (PRECISA de versao): --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.mapstruct&lt;/groupId&gt;
+    &lt;artifactId&gt;mapstruct&lt;/artifactId&gt;
+    &lt;version&gt;1.5.5.Final&lt;/version&gt;
+&lt;/dependency&gt;</code></pre>
+
+                <div class="importante">
+                    <div class="label">Regra pratica</div>
+                    <p>
+                        Antes de adicionar uma dependencia sem <code>&lt;version&gt;</code>,
+                        pergunte: <em>"O Spring Boot parent gerencia essa dependencia?"</em><br>
+                        Se sim → nao precisa de versao.<br>
+                        Se nao → <strong>obrigatorio</strong> declarar a versao.<br>
+                        Se nao tem certeza → coloque a versao. Nunca da erro por ter versao sobrando.
+                    </p>
+                </div>
+
+                <div class="dica">
+                    <div class="label">Por que isso importa no trabalho real</div>
+                    <p>
+                        Conflitos de versao sao o <strong>bug #1</strong> em projetos Java corporativos.
+                        Quando voce atualiza o Spring Boot de 3.2 para 3.3, dezenas de versoes mudam
+                        automaticamente. Entender o BOM e o parent POM te permite debugar esses
+                        problemas em vez de ficar perdido olhando stack traces.
+                    </p>
+                </div>
+            </section>
+
+            <!-- ==========================================
+                 PAGINA 12 — Docker Compose na Pratica
+                 ========================================== -->
+            <section class="page" id="docker-compose-na-pratica">
+                <div class="page-header">
+                    <span class="badge ferramenta">Ferramenta</span>
+                    <h2>Docker Compose na Pratica — O que esta rodando e como verificar</h2>
+                    <span class="date">Aprendido em 17/03/2026 — Fase 01</span>
+                </div>
+
+                <h3>O que o Docker Compose faz</h3>
+                <p>
+                    O arquivo <code>docker-compose.yml</code> e uma <strong>receita</strong> que diz ao Docker:
+                    "crie esses 3 servicos pra mim". Quando voce roda <code>docker compose up -d</code>,
+                    o Docker le essa receita e cria 3 <strong>containers</strong> (programas isolados rodando
+                    na sua maquina):
+                </p>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Container</th>
+                            <th>O que e</th>
+                            <th>Pra que serve no nosso projeto</th>
+                            <th>Porta</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>pixhub-postgres</strong></td>
+                            <td>Banco de dados PostgreSQL</td>
+                            <td>Guarda contas, chaves PIX, transacoes</td>
+                            <td>5432</td>
+                        </tr>
+                        <tr>
+                            <td><strong>pixhub-kafka</strong></td>
+                            <td>Message broker (correio de mensagens)</td>
+                            <td>Processa transferencias PIX de forma assincrona</td>
+                            <td>9092</td>
+                        </tr>
+                        <tr>
+                            <td><strong>pixhub-kafka-ui</strong></td>
+                            <td>Interface visual pro Kafka</td>
+                            <td>Permite ver topicos e mensagens no navegador</td>
+                            <td>8090</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="analogia">
+                    <div class="label">Analogia — Cozinha de Restaurante</div>
+                    <p>
+                        Imagine que voce esta montando uma cozinha de restaurante:<br><br>
+                        <strong>PostgreSQL</strong> = a <strong>geladeira</strong>. Guarda todos os ingredientes
+                        (dados). Sem ela, voce nao tem o que cozinhar.<br><br>
+                        <strong>Kafka</strong> = o <strong>balcao de pedidos</strong>. Quando chega um pedido
+                        (transferencia PIX), ele fica no balcao esperando ser preparado. O cozinheiro nao
+                        precisa parar tudo pra anotar — o balcao organiza a fila.<br><br>
+                        <strong>Kafka UI</strong> = a <strong>camera da cozinha</strong>. Voce nao precisa
+                        dela pra cozinhar, mas ela te deixa VER o que esta acontecendo no balcao de pedidos.<br><br>
+                        <strong>Spring Boot (sua API)</strong> = o <strong>cozinheiro</strong>. Ele usa a geladeira
+                        (Postgres) pra buscar dados e coloca/retira pedidos do balcao (Kafka). O cozinheiro NAO
+                        esta dentro da cozinha do Docker — ele roda na sua maquina diretamente com
+                        <code>mvn spring-boot:run</code>.
+                    </p>
+                </div>
+
+                <h3>O que voce VE no Docker Desktop</h3>
+                <p>
+                    Quando voce abre o Docker Desktop e vai em <strong>Containers</strong>, voce ve algo assim:
+                </p>
+                <pre><code>sistemadepix          RUNNING
+  ├── pixhub-postgres    Running    5432:5432
+  ├── pixhub-kafka       Running    9092:9092
+  └── pixhub-kafka-ui    Running    8090:8080</code></pre>
+                <p>
+                    O grupo <strong>"sistemadepix"</strong> e o nome do seu projeto (Docker usa o nome da pasta).
+                    Os 3 containers dentro dele sao os servicos definidos no <code>docker-compose.yml</code>.
+                </p>
+                <p>
+                    O <strong>status "Running"</strong> significa que o container esta ligado. Se algum
+                    mostrasse "Exited" ou "Restarting", algo deu errado.
+                </p>
+                <p>
+                    As <strong>portas</strong> (ex: <code>5432:5432</code>) significam:
+                    <em>"a porta 5432 da sua maquina esta conectada a porta 5432 dentro do container"</em>.
+                    Isso permite que o Spring Boot (que roda fora do Docker) se conecte ao banco.
+                </p>
+
+                <h3>Os URLs que voce pode abrir no navegador</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>URL</th>
+                            <th>O que voce ve</th>
+                            <th>Quando usar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>localhost:8080/actuator/health</code></td>
+                            <td><code>{"status":"UP"}</code></td>
+                            <td>Verificar se o Spring Boot esta vivo e conectado</td>
+                        </tr>
+                        <tr>
+                            <td><code>localhost:8080/swagger-ui.html</code></td>
+                            <td>Documentacao interativa da API</td>
+                            <td>Testar endpoints (quando criarmos)</td>
+                        </tr>
+                        <tr>
+                            <td><code>localhost:8090</code></td>
+                            <td>Kafka UI — interface visual</td>
+                            <td>Ver topicos, mensagens, consumers do Kafka</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="importante">
+                    <div class="label">Importante: o Spring Boot NAO esta no Docker</div>
+                    <p>
+                        O <code>docker compose up -d</code> so sobe Postgres, Kafka e Kafka UI.
+                        A sua aplicacao Java (Spring Boot) roda <strong>separada</strong>, na sua maquina,
+                        com <code>mvn spring-boot:run</code>.<br><br>
+                        Por que? Em desenvolvimento, e mais facil reiniciar e debugar a aplicacao quando ela
+                        roda direto na maquina. O Dockerfile que criamos e para <strong>producao</strong>
+                        (quando for fazer deploy).
+                    </p>
+                </div>
+
+                <h3>Como verificar que tudo esta funcionando</h3>
+                <p>Checklist pratico que voce pode seguir toda vez que iniciar o projeto:</p>
+                <ol>
+                    <li>
+                        <strong>Abrir Docker Desktop</strong> — verificar que os 3 containers
+                        estao "Running" (verdes)
+                    </li>
+                    <li>
+                        <strong>Abrir <code>localhost:8090</code></strong> no navegador — se a Kafka UI
+                        carregou, significa que o Kafka esta funcionando (ela depende dele)
+                    </li>
+                    <li>
+                        <strong>Rodar <code>mvn spring-boot:run</code></strong> no terminal — se o Spring
+                        Boot subir sem erros, significa que ele conseguiu conectar no Postgres e no Kafka
+                    </li>
+                    <li>
+                        <strong>Abrir <code>localhost:8080/actuator/health</code></strong> — se retornar
+                        <code>{"status":"UP"}</code>, <strong>tudo esta funcionando</strong>
+                    </li>
+                </ol>
+
+                <h3>Comandos uteis do Docker</h3>
+                <pre><code># Ver containers rodando
+docker ps
+
+# Subir tudo (em background, -d = detached)
+docker compose up -d
+
+# Parar tudo (containers param, dados ficam)
+docker compose down
+
+# Parar tudo E apagar dados (banco zerado)
+docker compose down -v
+
+# Ver logs de um container especifico
+docker logs pixhub-postgres
+docker logs pixhub-kafka
+
+# Reiniciar um container
+docker compose restart postgres</code></pre>
+
+                <h3>Fluxo visual do projeto</h3>
+                <pre><code>
+   Voce (navegador/Postman)
+         |
+         | HTTP request (ex: POST /api/v1/pix/transfer)
+         v
+  +-----------------+
+  |  Spring Boot    |  ← roda na sua maquina (mvn spring-boot:run)
+  |  (porta 8080)   |
+  +----+-------+----+
+       |       |
+       |       |  "salva dados"          "envia evento"
+       v       v
+  +--------+  +---------+
+  |Postgres|  |  Kafka  |  ← rodam no Docker (docker compose up -d)
+  | :5432  |  |  :9092  |
+  +--------+  +---------+
+                   |
+                   v
+              +-----------+
+              | Kafka UI  |  ← tambem no Docker (so pra visualizar)
+              |  :8090    |
+              +-----------+
+</code></pre>
+
+                <div class="dica">
+                    <div class="label">Dica pro dia a dia</div>
+                    <p>
+                        Voce so precisa rodar <code>docker compose up -d</code> uma vez quando ligar o
+                        computador. Os containers ficam rodando em background. O Spring Boot voce
+                        reinicia toda vez que mudar o codigo (ou use o DevTools que recarrega automaticamente).
+                        <br><br>
+                        Se algo der errado, <code>docker compose down -v</code> apaga tudo e
+                        <code>docker compose up -d</code> recria do zero. E como formatar o computador —
+                        resolve 90% dos problemas.
+                    </p>
+                </div>
+            </section>
+
+            <!-- ==========================================
+                 PAGINA 13 — Rotina Diaria e Como Evoluir o Sistema
+                 ========================================== -->
+            <section class="page" id="rotina-e-evolucao">
+                <div class="page-header">
+                    <span class="badge ferramenta">Ferramenta</span>
+                    <h2>Rotina Diaria, Alertas e Como Evoluir o Sistema</h2>
+                    <span class="date">Aprendido em 17/03/2026 — Fase 01</span>
+                </div>
+
+                <h3>Rotina diaria — o minimo pra trabalhar</h3>
+                <p>
+                    Todo dia que voce for codar no projeto, sao apenas 4 passos:
+                </p>
+                <pre><code>1. Abrir Docker Desktop              (esperar ficar verde)
+2. docker compose up -d               (sobe Postgres, Kafka, Kafka UI)
+3. mvn spring-boot:run                (sobe sua API Java)
+4. Codar normalmente
+5. Ctrl+C no terminal quando terminar (para a API)</code></pre>
+
+                <div class="dica">
+                    <div class="label">Voce NAO precisa derrubar o Docker todo dia</div>
+                    <p>
+                        <code>docker compose down</code> so e necessario se algo der errado.
+                        No dia a dia, basta fechar o Docker Desktop — os containers pausam.
+                        No dia seguinte, abra o Docker Desktop e rode <code>docker compose up -d</code>
+                        de novo. Se ja estiverem rodando, o comando nao faz nada (e seguro repetir).
+                    </p>
+                </div>
+
+                <h3>Pontos de atencao — sinais de problema</h3>
+                <p>
+                    Se algo parar de funcionar, olhe esses sinais:
+                </p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Sinal</th>
+                            <th>O que significa</th>
+                            <th>Como resolver</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Container vermelho/amarelo no Docker Desktop</td>
+                            <td>Um servico caiu ou esta reiniciando</td>
+                            <td><code>docker compose down -v</code> e <code>docker compose up -d</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>mvn spring-boot:run</code> da erro de conexao</td>
+                            <td>Postgres ou Kafka nao estao rodando</td>
+                            <td>Verificar Docker Desktop. Ver logs: <code>docker logs pixhub-postgres</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>localhost:8080/actuator/health</code> nao responde</td>
+                            <td>Spring Boot nao esta rodando</td>
+                            <td>Rodar <code>mvn spring-boot:run</code></td>
+                        </tr>
+                        <tr>
+                            <td>"Port already in use" (porta ja em uso)</td>
+                            <td>Outro programa esta usando a mesma porta</td>
+                            <td>Fechar o outro programa, ou mudar a porta no <code>docker-compose.yml</code></td>
+                        </tr>
+                        <tr>
+                            <td>Docker Desktop lento ou disco cheio</td>
+                            <td>Imagens e volumes antigos acumulados</td>
+                            <td><code>docker system prune</code> — limpa o que nao esta em uso</td>
+                        </tr>
+                        <tr>
+                            <td>Flyway da erro na inicializacao</td>
+                            <td>Uma migration SQL tem erro de sintaxe</td>
+                            <td>Corrigir o SQL. Se necessario: <code>docker compose down -v</code> pra zerar o banco</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="importante">
+                    <div class="label">Comando de emergencia — "formata e reinstala"</div>
+                    <p>
+                        Se nada funcionar e voce nao entender o erro:<br><br>
+                        <code>docker compose down -v</code> (apaga tudo, inclusive dados do banco)<br>
+                        <code>docker compose up -d</code> (recria tudo do zero)<br>
+                        <code>mvn spring-boot:run</code> (Flyway recria as tabelas automaticamente)<br><br>
+                        Isso resolve 90% dos problemas. O <code>-v</code> apaga os volumes (dados),
+                        entao o banco volta vazio e o Flyway roda todas as migrations de novo.
+                    </p>
+                </div>
+
+                <h3>Como evoluir o sistema — o ciclo de desenvolvimento</h3>
+                <p>
+                    Toda funcionalidade nova no projeto segue o mesmo ciclo de 7 passos.
+                    Sempre nessa ordem, de baixo (banco) pra cima (API):
+                </p>
+                <pre><code>BANCO           1. Migration (V2__create_accounts.sql)
+  |                 → SQL que cria/altera tabelas no banco
+  v
+ENTIDADE        2. Entity (Account.java)
+  |                 → Classe Java que mapeia a tabela
+  v
+REPOSITORIO     3. Repository (AccountRepository.java)
+  |                 → Interface que faz queries no banco
+  v
+LOGICA          4. Service (AccountService.java)
+  |                 → Regras de negocio (validacoes, calculos)
+  v
+CONTRATO        5. DTOs (CreateAccountRequest.java, AccountResponse.java)
+  |                 → O que a API recebe e devolve (nunca expor a Entity)
+  v
+ENDPOINT        6. Controller (AccountController.java)
+  |                 → A URL que o mundo externo chama
+  v
+QUALIDADE       7. Testes (AccountServiceTest.java)
+                    → Garante que tudo funciona</code></pre>
+
+                <div class="analogia">
+                    <div class="label">Analogia — Construindo um Predio</div>
+                    <p>
+                        <strong>Migration</strong> = fundacao (estrutura do terreno)<br>
+                        <strong>Entity</strong> = planta baixa (desenho tecnico do que existe)<br>
+                        <strong>Repository</strong> = porteiro (controla quem entra e sai do predio)<br>
+                        <strong>Service</strong> = sindico (conhece as regras e toma decisoes)<br>
+                        <strong>DTO</strong> = interfone (o que o visitante fala e o que ele ouve de volta)<br>
+                        <strong>Controller</strong> = portaria (ponto de entrada — recebe visitantes)<br>
+                        <strong>Testes</strong> = vistoria (inspecao pra garantir que nada esta quebrado)<br><br>
+                        Voce sempre constroi de baixo pra cima: primeiro a fundacao, depois as paredes,
+                        depois a portaria. Nunca ao contrario.
+                    </p>
+                </div>
+
+                <h3>Exemplo pratico: adicionar "Contas Bancarias"</h3>
+                <p>Na Fase 02, vamos criar o CRUD de contas. O processo seria:</p>
+                <ol>
+                    <li>
+                        <strong>Migration</strong>: criar <code>V2__create_accounts.sql</code> com
+                        <code>CREATE TABLE accounts (...)</code>
+                    </li>
+                    <li>
+                        <strong>Entity</strong>: criar <code>Account.java</code> com <code>@Entity</code>,
+                        mapeando cada coluna da tabela
+                    </li>
+                    <li>
+                        <strong>Repository</strong>: criar <code>AccountRepository.java</code> extends
+                        <code>JpaRepository&lt;Account, UUID&gt;</code>
+                    </li>
+                    <li>
+                        <strong>Service</strong>: criar <code>AccountService.java</code> com regras como
+                        "CPF nao pode ser duplicado", "saldo inicial e zero"
+                    </li>
+                    <li>
+                        <strong>DTOs</strong>: criar <code>CreateAccountRequest</code> (o que o usuario envia)
+                        e <code>AccountResponse</code> (o que a API devolve)
+                    </li>
+                    <li>
+                        <strong>Controller</strong>: criar <code>AccountController.java</code> com
+                        <code>POST /api/v1/accounts</code>, <code>GET /api/v1/accounts/{id}</code>, etc.
+                    </li>
+                    <li>
+                        <strong>Testes</strong>: testar cada regra do Service e cada endpoint do Controller
+                    </li>
+                </ol>
+
+                <h3>Fluxo de trabalho com Git</h3>
+                <p>
+                    Alem do ciclo de codigo, voce deve salvar seu progresso com Git:
+                </p>
+                <pre><code># Antes de comecar algo novo
+git status                              (ver o que mudou)
+
+# Depois de terminar uma funcionalidade
+git add src/                            (adiciona os arquivos alterados)
+git commit -m "feat: criar CRUD de contas bancarias"
+
+# Tipos de commit comuns:
+# feat:     nova funcionalidade
+# fix:      correcao de bug
+# refactor: melhorar codigo sem mudar comportamento
+# test:     adicionar ou corrigir testes
+# docs:     documentacao</code></pre>
+
+                <div class="dica">
+                    <div class="label">Resumo do dia a dia</div>
+                    <p>
+                        <strong>Inicio do dia:</strong> Docker Desktop → <code>docker compose up -d</code>
+                        → <code>mvn spring-boot:run</code><br><br>
+                        <strong>Durante o dia:</strong> codar seguindo o ciclo (Migration → Entity → ...
+                        → Controller → Testes)<br><br>
+                        <strong>Final do dia:</strong> <code>git add</code> + <code>git commit</code> pra
+                        salvar o progresso. <code>Ctrl+C</code> pra parar o Spring Boot.<br><br>
+                        <strong>Se algo quebrar:</strong> <code>docker compose down -v</code> +
+                        <code>docker compose up -d</code> = reset total.
+                    </p>
+                </div>
+            </section>
+
+            <!-- ==========================================
+                 PAGINA 14 — Comandos Essenciais Explicados
+                 ========================================== -->
+            <section class="page" id="comandos-essenciais">
+                <div class="page-header">
+                    <span class="badge ferramenta">Ferramenta</span>
+                    <h2>Comandos Essenciais — O que cada um faz</h2>
+                    <span class="date">Aprendido em 17/03/2026 — Fase 01</span>
+                </div>
+
+                <h3>O que e um "comando de terminal"</h3>
+                <p>
+                    Quando voce abre um terminal (aquele tela preta) e digita algo como
+                    <code>docker compose up -d</code>, voce esta dando uma <strong>instrucao</strong>
+                    pro computador. E como falar diretamente com ele em vez de clicar em botoes.
+                </p>
+                <p>
+                    Cada comando tem 3 partes:
+                </p>
+                <pre><code>docker   compose   up -d
+  |         |       |  |
+programa  subcomando | flag
+                  acao
+
+Traduzindo: "Docker, no modo compose, suba os servicos, em background"</code></pre>
+
+                <h3>Comandos Docker</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Comando</th>
+                            <th>O que faz</th>
+                            <th>Quando usar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>docker compose up -d</code></td>
+                            <td>Le o <code>docker-compose.yml</code> e liga todos os servicos.
+                                O <code>-d</code> (detached) faz rodar em background.</td>
+                            <td>Todo dia ao comecar a trabalhar</td>
+                        </tr>
+                        <tr>
+                            <td><code>docker compose down</code></td>
+                            <td>Desliga todos os servicos. Os dados do banco ficam salvos.</td>
+                            <td>Quando quiser desligar a infraestrutura</td>
+                        </tr>
+                        <tr>
+                            <td><code>docker compose down -v</code></td>
+                            <td>Desliga tudo E apaga os volumes (dados). O banco fica vazio.</td>
+                            <td>Quando algo da muito errado e voce quer recomecar do zero</td>
+                        </tr>
+                        <tr>
+                            <td><code>docker ps</code></td>
+                            <td>Mostra os containers que estao rodando agora</td>
+                            <td>Pra checar se esta tudo no ar</td>
+                        </tr>
+                        <tr>
+                            <td><code>docker logs pixhub-postgres</code></td>
+                            <td>Mostra o que o Postgres esta "falando" (mensagens de log)</td>
+                            <td>Quando o Postgres da erro e voce quer entender por que</td>
+                        </tr>
+                        <tr>
+                            <td><code>docker system prune</code></td>
+                            <td>Apaga imagens e containers antigos que nao estao em uso</td>
+                            <td>Quando o Docker esta ocupando muito espaco em disco</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Comandos Maven (mvn)</h3>
+                <p>
+                    <strong>Maven</strong> e o gerenciador do seu projeto Java. Ele compila o codigo,
+                    baixa dependencias e roda a aplicacao. O comando <code>mvn</code> e como voce fala com ele.
+                </p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Comando</th>
+                            <th>O que faz</th>
+                            <th>Quando usar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>mvn spring-boot:run</code></td>
+                            <td>Compila seu codigo Java e roda a aplicacao na porta 8080</td>
+                            <td>Todo dia, depois do <code>docker compose up -d</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>mvn clean compile</code></td>
+                            <td>Apaga arquivos antigos e compila de novo (sem rodar)</td>
+                            <td>Pra verificar se o codigo compila sem erros</td>
+                        </tr>
+                        <tr>
+                            <td><code>mvn test</code></td>
+                            <td>Roda todos os testes automatizados</td>
+                            <td>Depois de terminar uma funcionalidade</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Ctrl+C — o que para e o que continua</h3>
+                <p>
+                    <code>Ctrl+C</code> para <strong>so o que esta rodando naquele terminal</strong>.
+                    Se voce rodou <code>mvn spring-boot:run</code>, o Ctrl+C para so o Spring Boot.
+                </p>
+                <pre><code>O que roda DENTRO do terminal (voce controla com Ctrl+C):
+  → Spring Boot (mvn spring-boot:run)
+
+O que roda em BACKGROUND (independente do terminal):
+  → Docker Desktop (icone na barra de tarefas)
+  → PostgreSQL (container)
+  → Kafka (container)
+  → Kafka UI (container)</code></pre>
+
+                <div class="analogia">
+                    <div class="label">Analogia — TV e Geladeira</div>
+                    <p>
+                        <strong>Spring Boot</strong> = a TV. Voce liga e desliga com o controle (Ctrl+C).
+                        Quando desliga, ela para.<br><br>
+                        <strong>Docker (Postgres, Kafka)</strong> = a geladeira. Ela fica ligada o tempo todo,
+                        em background. Voce nao "desliga" a geladeira toda vez que sai de casa.
+                        Ela so para se voce tirar da tomada (<code>docker compose down</code>) ou
+                        se faltar energia (desligar o computador).
+                    </p>
+                </div>
+            </section>
+
+            <!-- ==========================================
+                 PAGINA 15 — As Camadas da Aplicacao
+                 ========================================== -->
+            <section class="page" id="camadas-da-aplicacao">
+                <div class="page-header">
+                    <span class="badge arquitetura">Arquitetura</span>
+                    <h2>As Camadas da Aplicacao — O que e cada uma</h2>
+                    <span class="date">Aprendido em 17/03/2026 — Fase 01</span>
+                </div>
+
+                <p>
+                    Uma aplicacao Spring Boot e organizada em <strong>camadas</strong>. Cada camada
+                    tem uma responsabilidade especifica. Vamos usar o exemplo de uma
+                    <strong>transferencia PIX</strong> pra explicar cada uma:
+                </p>
+
+                <h3>1. Migration — a estrutura do banco de dados</h3>
+                <p>
+                    <strong>O que e:</strong> um arquivo SQL que cria ou altera tabelas no banco de dados.<br>
+                    <strong>Onde fica:</strong> <code>src/main/resources/db/migration/</code><br>
+                    <strong>Exemplo:</strong>
+                </p>
+                <pre><code>-- V1__create_schema.sql
+CREATE TABLE accounts (
+    id          UUID PRIMARY KEY,
+    holder_name VARCHAR(100) NOT NULL,
+    cpf         VARCHAR(11) UNIQUE NOT NULL,
+    balance     DECIMAL(15,2) DEFAULT 0
+);</code></pre>
+                <p>
+                    O <strong>Flyway</strong> roda essas migrations automaticamente quando o Spring Boot
+                    inicia. Ele olha quais ja foram executadas e roda so as novas. Por isso as migrations
+                    sao numeradas (V1, V2, V3...) — a ordem importa.
+                </p>
+                <div class="analogia">
+                    <div class="label">Analogia</div>
+                    <p>
+                        Migration = <strong>planta da obra</strong>. Define a estrutura do predio (tabelas)
+                        antes de colocar qualquer movel (dados) dentro.
+                    </p>
+                </div>
+
+                <h3>2. Entity — o mapa do banco em Java</h3>
+                <p>
+                    <strong>O que e:</strong> uma classe Java que representa uma tabela do banco.
+                    Cada atributo da classe = uma coluna da tabela.<br>
+                    <strong>Onde fica:</strong> <code>src/main/java/.../entity/</code><br>
+                    <strong>Exemplo:</strong>
+                </p>
+                <pre><code>@Entity                          // "essa classe representa uma tabela"
+@Table(name = "accounts")       // "a tabela se chama accounts"
+public class Account {
+
+    @Id                          // "esse campo e a chave primaria"
+    private UUID id;
+
+    @Column(name = "holder_name") // "essa coluna se chama holder_name"
+    private String holderName;
+
+    private String cpf;
+    private BigDecimal balance;
+}</code></pre>
+                <p>
+                    O Spring (via JPA/Hibernate) usa essa classe pra traduzir entre Java e SQL
+                    automaticamente. Voce trabalha com objetos Java, e ele converte pra queries SQL.
+                </p>
+                <div class="analogia">
+                    <div class="label">Analogia</div>
+                    <p>
+                        Entity = <strong>ficha cadastral</strong>. A tabela do banco e o arquivo fisico,
+                        a Entity e a ficha que voce preenche pra acessar os dados.
+                    </p>
+                </div>
+
+                <h3>3. Repository — quem conversa com o banco</h3>
+                <p>
+                    <strong>O que e:</strong> uma interface que faz operacoes no banco (buscar, salvar, deletar).
+                    Voce so declara o que quer — o Spring gera a implementacao automaticamente.<br>
+                    <strong>Onde fica:</strong> <code>src/main/java/.../repository/</code><br>
+                    <strong>Exemplo:</strong>
+                </p>
+                <pre><code>public interface AccountRepository extends JpaRepository&lt;Account, UUID&gt; {
+
+    // O Spring cria o SQL automaticamente baseado no nome do metodo!
+    // Isso vira: SELECT * FROM accounts WHERE cpf = ?
+    Optional&lt;Account&gt; findByCpf(String cpf);
+
+    // Isso vira: SELECT CASE WHEN COUNT(*) > 0 THEN true END FROM accounts WHERE cpf = ?
+    boolean existsByCpf(String cpf);
+}</code></pre>
+                <p>
+                    Voce nao escreve SQL (na maioria dos casos). O Spring le o nome do metodo
+                    (<code>findByCpf</code>) e gera a query. Isso se chama <strong>query derivation</strong>.
+                </p>
+                <div class="analogia">
+                    <div class="label">Analogia</div>
+                    <p>
+                        Repository = <strong>porteiro do arquivo</strong>. Voce pede "me traz a ficha
+                        do CPF 123" e ele vai la e busca. Voce nao precisa saber como o arquivo
+                        esta organizado por dentro.
+                    </p>
+                </div>
+
+                <h3>4. Service — as regras de negocio</h3>
+                <p>
+                    <strong>O que e:</strong> a classe que contem a <strong>logica do negocio</strong>.
+                    Validacoes, calculos, regras — tudo fica aqui. E o "cerebro" da aplicacao.<br>
+                    <strong>Onde fica:</strong> <code>src/main/java/.../service/</code><br>
+                    <strong>Exemplo:</strong>
+                </p>
+                <pre><code>@Service
+public class TransferService {
+
+    public void transfer(UUID fromId, UUID toId, BigDecimal amount) {
+        // REGRA 1: valor precisa ser positivo
+        if (amount.compareTo(BigDecimal.ZERO) &lt;= 0)
+            throw new InvalidAmountException("Valor precisa ser maior que zero");
+
+        // REGRA 2: conta de origem precisa existir
+        Account from = accountRepository.findById(fromId)
+            .orElseThrow(() -&gt; new AccountNotFoundException(fromId));
+
+        // REGRA 3: saldo suficiente
+        if (from.getBalance().compareTo(amount) &lt; 0)
+            throw new InsufficientBalanceException();
+
+        // Executa a transferencia
+        from.debit(amount);
+        to.credit(amount);
+    }
+}</code></pre>
+                <div class="analogia">
+                    <div class="label">Analogia</div>
+                    <p>
+                        Service = <strong>gerente do banco</strong>. Ele conhece todas as regras:
+                        "nao pode transferir valor negativo", "precisa ter saldo", "conta precisa existir".
+                        Ele toma as decisoes. O Controller so repassa o pedido pro gerente.
+                    </p>
+                </div>
+
+                <h3>5. DTO — o contrato da API</h3>
+                <p>
+                    <strong>O que e:</strong> DTO = Data Transfer Object. Sao classes simples que definem
+                    <strong>o que a API recebe</strong> (Request) e <strong>o que devolve</strong> (Response).
+                    Nunca se expoe a Entity diretamente.<br>
+                    <strong>Onde fica:</strong> <code>src/main/java/.../dto/</code><br>
+                    <strong>Exemplo:</strong>
+                </p>
+                <pre><code>// O que o usuario ENVIA pra criar uma conta
+public record CreateAccountRequest(
+    String holderName,
+    String cpf
+) {}
+
+// O que a API DEVOLVE depois de criar
+public record AccountResponse(
+    UUID id,
+    String holderName,
+    String cpf,
+    BigDecimal balance
+) {}</code></pre>
+                <p>
+                    <strong>Por que nao usar a Entity direto?</strong> Porque a Entity pode ter campos
+                    que o usuario nao deve ver (senha, dados internos). O DTO e um "filtro" — voce
+                    escolhe exatamente o que entra e o que sai.
+                </p>
+                <div class="analogia">
+                    <div class="label">Analogia</div>
+                    <p>
+                        DTO = <strong>formulario</strong>. O Request e o formulario que o cliente preenche
+                        ("nome", "CPF"). O Response e o comprovante que ele recebe de volta
+                        ("numero da conta", "saldo"). O formulario nao mostra dados internos do sistema.
+                    </p>
+                </div>
+
+                <h3>6. Controller — a porta de entrada</h3>
+                <p>
+                    <strong>O que e:</strong> a classe que define os <strong>endpoints</strong> (URLs) da API.
+                    Recebe requisicoes HTTP, repassa pro Service, e devolve a resposta.<br>
+                    <strong>Onde fica:</strong> <code>src/main/java/.../controller/</code><br>
+                    <strong>Exemplo:</strong>
+                </p>
+                <pre><code>@RestController                          // "essa classe e um controller REST"
+@RequestMapping("/api/v1/accounts")      // "todos os endpoints comecam com /api/v1/accounts"
+public class AccountController {
+
+    @PostMapping                         // POST /api/v1/accounts
+    public ResponseEntity&lt;AccountResponse&gt; create(@RequestBody CreateAccountRequest request) {
+        AccountResponse response = accountService.create(request);
+        return ResponseEntity.status(201).body(response);
+    }
+
+    @GetMapping("/{id}")                 // GET /api/v1/accounts/123
+    public ResponseEntity&lt;AccountResponse&gt; findById(@PathVariable UUID id) {
+        AccountResponse response = accountService.findById(id);
+        return ResponseEntity.ok(response);
+    }
+}</code></pre>
+                <p>
+                    O Controller e <strong>magro</strong> — ele nao tem logica. So recebe o pedido,
+                    passa pro Service, e devolve o resultado. Se voce colocar regra de negocio no
+                    Controller, esta fazendo errado.
+                </p>
+                <div class="analogia">
+                    <div class="label">Analogia</div>
+                    <p>
+                        Controller = <strong>recepcionista</strong>. O cliente chega e diz "quero abrir uma conta".
+                        A recepcionista nao abre a conta — ela anota o pedido e encaminha pro gerente
+                        (Service). Quando o gerente termina, a recepcionista entrega o comprovante (Response)
+                        pro cliente.
+                    </p>
+                </div>
+
+                <h3>7. Testes — a garantia de qualidade</h3>
+                <p>
+                    <strong>O que e:</strong> codigo que testa seu proprio codigo. Voce escreve cenarios
+                    ("se o saldo for zero e tentarem transferir, deve dar erro") e o teste verifica
+                    automaticamente se o comportamento esta correto.<br>
+                    <strong>Onde fica:</strong> <code>src/test/java/.../</code><br>
+                    <strong>Exemplo:</strong>
+                </p>
+                <pre><code>@Test
+void naoDeveTransferirSemSaldo() {
+    // DADO uma conta com saldo zero
+    Account conta = new Account("Riel", "12345678900", BigDecimal.ZERO);
+
+    // QUANDO tenta transferir R$ 100
+    // ENTAO deve lancar excecao
+    assertThrows(InsufficientBalanceException.class, () -&gt;
+        transferService.transfer(conta.getId(), outraConta.getId(),
+            new BigDecimal("100.00"))
+    );
+}</code></pre>
+                <p>
+                    Voce roda todos os testes com <code>mvn test</code>. Se algum falhar, significa
+                    que algo quebrou. No nosso projeto, usamos <strong>Testcontainers</strong> — os
+                    testes sobem um Postgres e Kafka reais (nao simulados) pra testar de verdade.
+                </p>
+                <div class="analogia">
+                    <div class="label">Analogia</div>
+                    <p>
+                        Testes = <strong>vistoria do predio</strong>. Depois que voce constroi um andar novo,
+                        o engenheiro vai la e testa: "a porta abre?", "a luz liga?", "o encanamento funciona?".
+                        Se algo falhar, voce corrige ANTES de entregar pro morador.
+                    </p>
+                </div>
+
+                <h3>Resumo visual — o caminho de uma requisicao</h3>
+                <pre><code>
+Usuario faz POST /api/v1/accounts com {"name": "Riel", "cpf": "123"}
+  |
+  v
+CONTROLLER  →  recebe o JSON, converte em CreateAccountRequest (DTO)
+  |
+  v
+SERVICE     →  valida: "CPF ja existe?" "nome esta vazio?"
+  |               se invalido → lanca excecao → Controller devolve erro
+  v
+REPOSITORY  →  accountRepository.save(account) → salva no banco
+  |
+  v
+ENTITY      →  o objeto Account e convertido em INSERT INTO accounts (...)
+  |
+  v
+MIGRATION   →  a tabela "accounts" ja existe porque o Flyway criou quando o app iniciou
+  |
+  v
+BANCO       →  PostgreSQL guarda o registro
+  |
+  v
+Volta o caminho: Banco → Entity → Service → DTO (Response) → Controller → Usuario
+  |
+  v
+Usuario recebe: {"id": "abc-123", "name": "Riel", "cpf": "123", "balance": 0}
+</code></pre>
+            </section>
+
+            <!-- ==========================================
+                 PAGINA 16 — Local vs Nuvem (Deploy)
+                 ========================================== -->
+            <section class="page" id="local-vs-nuvem">
+                <div class="page-header">
+                    <span class="badge conceito">Conceito</span>
+                    <h2>Local vs Nuvem — Onde o sistema roda de verdade</h2>
+                    <span class="date">Aprendido em 17/03/2026 — Fase 01</span>
+                </div>
+
+                <h3>Agora: tudo roda na sua maquina</h3>
+                <p>
+                    No momento, todo o sistema roda <strong>localmente</strong>:
+                </p>
+                <pre><code>Seu computador (localhost)
+  ├── Docker Desktop
+  │     ├── PostgreSQL (container)
+  │     ├── Kafka (container)
+  │     └── Kafka UI (container)
+  └── Spring Boot (processo Java)</code></pre>
+                <p>
+                    Isso significa que:
+                </p>
+                <ul>
+                    <li>Se voce <strong>desligar o computador</strong>, tudo para</li>
+                    <li>Ninguem alem de voce pode acessar a API</li>
+                    <li>Os dados so existem na sua maquina</li>
+                </ul>
+                <p>
+                    Isso e <strong>perfeito pra desenvolvimento</strong>. Voce nao precisa de mais nada agora.
+                </p>
+
+                <h3>No mercado real: roda na nuvem</h3>
+                <p>
+                    Se esse sistema fosse usado por clientes reais (um banco de verdade processando PIX),
+                    ele precisaria ficar <strong>ligado 24 horas por dia, 7 dias por semana</strong>,
+                    acessivel pela internet. Pra isso, ele seria <strong>hospedado na nuvem</strong>:
+                </p>
+                <pre><code>Nuvem (AWS / Azure / GCP)
+  ├── Servidor de banco de dados gerenciado
+  │     └── Amazon RDS (PostgreSQL) — backup automatico, sempre ligado
+  ├── Servico de mensageria gerenciado
+  │     └── Amazon MSK (Kafka) — escalavel, sempre ligado
+  └── Servico de containers
+        └── Amazon ECS ou Kubernetes — roda o Spring Boot em varios servidores</code></pre>
+
+                <div class="analogia">
+                    <div class="label">Analogia — Cozinhar em casa vs Restaurante</div>
+                    <p>
+                        <strong>Desenvolvimento local</strong> = cozinhar em casa. Voce cozinha quando
+                        quer, desliga o fogao quando termina, so voce come.<br><br>
+                        <strong>Producao na nuvem</strong> = restaurante comercial. A cozinha funciona o
+                        dia todo, precisa atender muitos clientes ao mesmo tempo, precisa de
+                        backup de ingredientes, e se uma boca do fogao quebrar, as outras continuam
+                        funcionando.
+                    </p>
+                </div>
+
+                <h3>O que muda quando vai pra nuvem?</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Aspecto</th>
+                            <th>Local (agora)</th>
+                            <th>Nuvem (producao)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Disponibilidade</td>
+                            <td>So quando seu PC esta ligado</td>
+                            <td>24/7, sempre no ar</td>
+                        </tr>
+                        <tr>
+                            <td>Acesso</td>
+                            <td>So localhost (voce)</td>
+                            <td>Qualquer pessoa na internet</td>
+                        </tr>
+                        <tr>
+                            <td>Banco de dados</td>
+                            <td>Docker local (sem backup)</td>
+                            <td>Servico gerenciado (backup automatico)</td>
+                        </tr>
+                        <tr>
+                            <td>Custo</td>
+                            <td>Gratis</td>
+                            <td>Pago (a partir de ~$20/mes pra projetos pequenos)</td>
+                        </tr>
+                        <tr>
+                            <td>Escala</td>
+                            <td>1 instancia</td>
+                            <td>Multiplas instancias (mais usuarios = mais servidores)</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="dica">
+                    <div class="label">O que importa agora</div>
+                    <p>
+                        Deploy na nuvem e um assunto para <strong>depois</strong>. O foco agora e
+                        construir a aplicacao, aprender as camadas, e ter um projeto funcionando.
+                        O Dockerfile que ja criamos e justamente o que permite fazer deploy depois —
+                        ele empacota o Spring Boot em um container pronto pra rodar em qualquer lugar.<br><br>
+                        Por enquanto, seu unico "servidor" e o Docker Desktop + <code>mvn spring-boot:run</code>.
+                        E isso e suficiente.
+                    </p>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- ==========================================
+         JAVASCRIPT — Destaque do link ativo no menu
+         conforme o usuario faz scroll pela pagina
+         ========================================== -->
+    <script>
+        // Pega todos os links do menu e todas as secoes da pagina
+        const links = document.querySelectorAll('.sidebar a[href^="#"]');
+        const sections = document.querySelectorAll('.page');
+
+        // Quando o usuario faz scroll, verifica qual secao esta visivel
+        // e destaca o link correspondente no menu lateral
+        window.addEventListener('scroll', () => {
+            let current = '';
+
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (window.scrollY >= sectionTop - 100) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            links.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#' + current) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

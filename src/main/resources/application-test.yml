@@ -1,0 +1,32 @@
+# ============================================================
+# application-test.yml — Configurações para testes automatizados
+# ============================================================
+# Ativado quando: spring.profiles.active=test
+# Usa Testcontainers — sobe PostgreSQL e Kafka em containers
+# Docker efêmeros (criados e destruídos a cada suíte de testes).
+#
+# Testcontainers substitui o banco H2 em memória, garantindo
+# que os testes usam o MESMO banco de produção (PostgreSQL).
+# ============================================================
+
+spring:
+  datasource:
+    # URL especial do Testcontainers:
+    # "tc:" prefixo que ativa o driver do Testcontainers
+    # "postgresql:16-alpine" imagem Docker a ser usada
+    # "TC_DAEMON=true" mantém o container rodando entre testes da mesma suíte
+    url: jdbc:tc:postgresql:16-alpine:///pixhub_test?TC_DAEMON=true
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+
+  jpa:
+    hibernate:
+      # Em testes, Hibernate cria o schema automaticamente.
+      # Flyway também roda, mas ddl-auto=create garante um estado limpo.
+      ddl-auto: create-drop
+
+  kafka:
+    bootstrap-servers: ${spring.embedded.kafka.brokers:localhost:9092}
+
+logging:
+  level:
+    com.riel.pixhub: DEBUG

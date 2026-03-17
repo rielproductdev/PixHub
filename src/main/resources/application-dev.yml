@@ -1,0 +1,49 @@
+# ============================================================
+# application-dev.yml — Configurações para desenvolvimento local
+# ============================================================
+# Ativado quando: spring.profiles.active=dev (padrão)
+# Aponta para os serviços rodando via Docker Compose.
+# ============================================================
+
+spring:
+  datasource:
+    # URL JDBC para conectar no PostgreSQL rodando no Docker.
+    # Formato: jdbc:postgresql://HOST:PORTA/NOME_DO_BANCO
+    # localhost:5432 = padrão do PostgreSQL exposto pelo docker-compose
+    url: jdbc:postgresql://localhost:5432/pixhub
+    username: pixhub
+    password: pixhub_dev
+
+  jpa:
+    # show-sql=true: imprime todas as queries SQL no console.
+    # Útil em desenvolvimento para debugar queries e detectar N+1.
+    # Em produção, DESABILITAR (poluiria os logs e é inseguro).
+    show-sql: true
+    properties:
+      hibernate:
+        # format_sql: formata o SQL com indentação para facilitar leitura.
+        format_sql: true
+
+  kafka:
+    # Endereço do broker Kafka rodando no Docker Compose.
+    # KRaft mode (sem ZooKeeper) — configuração moderna do Kafka.
+    bootstrap-servers: localhost:9092
+    consumer:
+      # group-id: identificador do grupo de consumidores.
+      # Kafka garante que cada mensagem é processada por apenas
+      # um consumidor dentro do mesmo grupo.
+      group-id: pixhub-dev
+      # auto-offset-reset=earliest: ao iniciar um consumer novo,
+      # lê mensagens desde o início do tópico (não perde nenhuma).
+      auto-offset-reset: earliest
+    producer:
+      # Serialização: converte objetos Java → bytes para enviar ao Kafka.
+      # StringSerializer para a key, JsonSerializer para o value.
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+# Nível de log detalhado em dev para facilitar debug
+logging:
+  level:
+    com.riel.pixhub: DEBUG
+    org.springframework.security: DEBUG

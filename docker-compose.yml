@@ -1,0 +1,138 @@
+# ============================================================
+# docker-compose.yml — Orquestra os containers de desenvolvimento
+# ============================================================
+# Docker Compose define e roda múltiplos containers como um sistema.
+# Em vez de rodar "docker run" para cada serviço, definimos tudo aqui
+# e subimos com um comando: docker compose up -d
+#
+# Serviços:
+# 1. PostgreSQL 16 — banco de dados relacional
+# 2. Kafka (KRaft) — message broker para eventos
+# 3. Kafka UI — interface visual para monitorar Kafka
+# ============================================================
+
+services:
+
+  # ==================== POSTGRESQL ====================
+  postgres:
+    # Imagem oficial do PostgreSQL, versão 16, variante Alpine (menor).
+    image: postgres:16-alpine
+
+    # Nome fixo do container (facilita referência em comandos docker).
+    container_name: pixhub-postgres
+
+    # Variáveis de ambiente para configurar o PostgreSQL na primeira execução.
+    # POSTGRES_DB: cria o banco automaticamente.
+    # POSTGRES_USER/PASSWORD: cria o usuário com acesso ao banco.
+    environment:
+      POSTGRES_DB: pixhub
+      POSTGRES_USER: pixhub
+      POSTGRES_PASSWORD: pixhub_dev
+
+    # Mapeamento de portas: HOST:CONTAINER
+    # Expõe a porta 5432 do container na porta 5432 do host (localhost).
+    # Assim o Spring Boot (rodando fora do Docker) conecta via localhost:5432.
+    ports:
+      - "5432:5432"
+
+    # Volume nomeado: persiste dados do banco entre reinicializações.
+    # Sem volume, ao remover o container, todos os dados seriam perdidos.
+    # Os dados ficam em um diretório gerenciado pelo Docker.
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+    # Healthcheck: Docker verifica periodicamente se o PostgreSQL está pronto.
+    # pg_isready: comando nativo do PostgreSQL que verifica conexão.
+    # Outros containers podem usar "depends_on: condition: service_healthy"
+    # para esperar o banco estar pronto antes de iniciar.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pixhub"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==================== KAFKA (KRaft mode) ====================
+  kafka:
+    # Imagem OFICIAL do Apache Kafka (disponível desde Kafka 3.7+).
+    # Antes, só existiam imagens de terceiros (Bitnami, Confluent).
+    # Agora o próprio projeto Kafka publica a imagem oficial.
+    #
+    # KRaft = Kafka sem ZooKeeper (arquitetura moderna, simplifica o setup).
+    # ZooKeeper era um serviço separado necessário para gerenciar o cluster.
+    # A partir do Kafka 3.3+, KRaft substitui o ZooKeeper.
+    image: apache/kafka:3.8.1
+
+    container_name: pixhub-kafka
+
+    # Portas:
+    # 9092 = acesso externo (do host, onde o Spring Boot roda)
+    # 9093 = comunicação interna entre containers (inter-broker)
+    ports:
+      - "9092:9092"
+
+    environment:
+      # ---- Identificação do broker ----
+      # Cada broker Kafka tem um ID único no cluster.
+      KAFKA_NODE_ID: 1
+
+      # ---- KRaft: Kafka sem ZooKeeper ----
+      # process.roles=broker,controller: este nó faz ambos os papéis.
+      # Em produção, seriam nós separados para cada papel.
+      KAFKA_PROCESS_ROLES: broker,controller
+
+      # Quorum voters: lista de controllers do cluster.
+      # Formato: ID@HOST:PORTA
+      # Em dev, temos apenas 1 nó fazendo tudo.
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9094
+
+      # ---- Listeners (como o Kafka escuta conexões) ----
+      # Listeners definem em quais endereços/portas o Kafka escuta.
+      # Precisamos de listeners diferentes para:
+      # - EXTERNAL (9092): acesso do host (Spring Boot)
+      # - INTERNAL (9093): acesso entre containers
+      # - CONTROLLER (9094): protocolo de controle KRaft
+      KAFKA_LISTENERS: EXTERNAL://:9092,INTERNAL://:9093,CONTROLLER://:9094
+      KAFKA_ADVERTISED_LISTENERS: EXTERNAL://localhost:9092,INTERNAL://kafka:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: EXTERNAL:PLAINTEXT,INTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+
+      # ID do cluster (obrigatório na imagem oficial com KRaft).
+      # Pode ser qualquer string única. Identifica o cluster.
+      CLUSTER_ID: pixhub-kafka-cluster-01
+
+      # ---- Configuração de tópicos ----
+      # auto.create.topics=false: tópicos precisam ser criados explicitamente.
+      # Em produção, isso evita tópicos acidentais por typo no nome.
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+
+    volumes:
+      - kafkadata:/var/lib/kafka/data
+
+  # ==================== KAFKA UI ====================
+  kafka-ui:
+    # Interface web para visualizar tópicos, mensagens, consumers.
+    # Útil em desenvolvimento para debugar fluxos de mensageria.
+    image: provectuslabs/kafka-ui:latest
+
+    container_name: pixhub-kafka-ui
+
+    # Acessível em http://localhost:8090
+    ports:
+      - "8090:8080"
+
+    environment:
+      KAFKA_CLUSTERS_0_NAME: pixhub-local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9093
+
+    # depends_on: Kafka UI só inicia depois que o Kafka estiver rodando.
+    depends_on:
+      - kafka
+
+# ==================== VOLUMES ====================
+# Volumes nomeados: Docker gerencia o armazenamento.
+# Persistem dados entre "docker compose down" e "docker compose up".
+# Para limpar tudo: docker compose down -v (remove volumes).
+volumes:
+  pgdata:
+  kafkadata:

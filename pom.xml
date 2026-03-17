@@ -1,0 +1,402 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!--
+        parent: Herda configurações padrão do Spring Boot (versões de dependências,
+        plugins de build, etc). Funciona como um "template" que já vem pré-configurado.
+    -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.2.5</version>
+        <relativePath/>
+    </parent>
+
+    <!--
+        Coordenadas Maven (identificação única do projeto):
+        - groupId: domínio invertido da organização (como package do Java)
+        - artifactId: nome do projeto
+        - version: versão semântica (MAJOR.MINOR.PATCH)
+    -->
+    <groupId>com.riel</groupId>
+    <artifactId>pixhub</artifactId>
+    <version>0.1.0</version>
+    <name>PixHub</name>
+    <description>API de simulação do sistema PIX - Portfolio Squad Banking</description>
+
+    <!--
+        properties: Variáveis reutilizáveis no pom.xml.
+        Centraliza versões para evitar inconsistências entre dependências.
+    -->
+    <properties>
+        <java.version>17</java.version>
+        <mapstruct.version>1.5.5.Final</mapstruct.version>
+        <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
+        <springdoc.version>2.5.0</springdoc.version>
+        <jjwt.version>0.12.5</jjwt.version>
+        <testcontainers.version>1.19.7</testcontainers.version>
+    </properties>
+
+    <dependencies>
+
+        <!-- ==================== SPRING BOOT STARTERS ==================== -->
+        <!--
+            Starters são "pacotes prontos" de dependências. Em vez de adicionar
+            20 bibliotecas separadas, um starter traz tudo que você precisa
+            para uma funcionalidade específica.
+        -->
+
+        <!--
+            spring-boot-starter-web:
+            Framework web completo. Inclui:
+            - Tomcat embutido (servidor HTTP, não precisa instalar separado)
+            - Spring MVC (padrão Model-View-Controller para REST APIs)
+            - Jackson (serialização/deserialização JSON automática)
+            Sem isso, não temos endpoints HTTP.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!--
+            spring-boot-starter-data-jpa:
+            ORM (Object-Relational Mapping) via Hibernate. Permite:
+            - Mapear classes Java para tabelas do banco (@Entity)
+            - Fazer queries sem escrever SQL (JpaRepository)
+            - Gerenciar transações automaticamente (@Transactional)
+            Traduz objetos Java ↔ registros no PostgreSQL.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+
+        <!--
+            spring-boot-starter-security:
+            Framework de segurança. Controla:
+            - Autenticação (quem é você? → JWT token)
+            - Autorização (o que você pode fazer? → roles/permissões)
+            - Proteção contra CSRF, clickjacking, etc.
+            Sem isso, qualquer pessoa acessa qualquer endpoint.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
+        <!--
+            spring-boot-starter-validation:
+            Validação declarativa com annotations. Exemplos:
+            - @NotNull, @NotBlank → campo obrigatório
+            - @Size(min=11, max=11) → CPF tem exatamente 11 dígitos
+            - @Valid → ativa validação no controller
+            Evita if/else manual para cada validação.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
+        <!--
+            spring-boot-starter-actuator:
+            Endpoints de monitoramento prontos:
+            - /actuator/health → status da aplicação (UP/DOWN)
+            - /actuator/metrics → métricas (uso de memória, requests/s)
+            - /actuator/info → informações do build
+            Essencial para health checks do Docker e monitoramento em produção.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <!-- ==================== KAFKA ==================== -->
+
+        <!--
+            spring-kafka:
+            Integração Spring + Apache Kafka. Kafka é um sistema de mensageria
+            (fila de mensagens) usado para comunicação assíncrona entre serviços.
+            No nosso caso: quando um PIX é criado, publicamos um evento no Kafka
+            para que outros serviços (notificação, auditoria) processem depois.
+            Padrão "event-driven architecture" muito usado em banking.
+        -->
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
+        </dependency>
+
+        <!-- ==================== BANCO DE DADOS ==================== -->
+
+        <!--
+            postgresql:
+            Driver JDBC (Java Database Connectivity) do PostgreSQL.
+            É o "tradutor" entre o Java e o banco de dados. Sem ele,
+            o Hibernate não consegue se conectar ao PostgreSQL.
+            scope=runtime: só precisa em tempo de execução, não na compilação.
+        -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!--
+            flyway-core + flyway-database-postgresql:
+            Sistema de migrations versionadas para o banco de dados.
+            Funciona como "git para o schema do banco":
+            - V1__create_schema.sql → cria tabelas iniciais
+            - V2__add_column.sql → altera tabelas
+            Garante que todos os ambientes (dev, test, prod) tenham
+            o mesmo schema, na mesma versão.
+        -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+        <!--
+            flyway-database-postgresql:
+            Módulo separado para PostgreSQL, necessário a partir do Flyway 10+.
+            No Spring Boot 3.2.x (Flyway 9.x), o suporte PostgreSQL já vem
+            incluído no flyway-core. Será necessário quando migrarmos para
+            Spring Boot 3.3+ (que usa Flyway 10+).
+        -->
+
+        <!-- ==================== PRODUTIVIDADE ==================== -->
+
+        <!--
+            lombok:
+            Gera código repetitivo em tempo de compilação via annotations:
+            - @Getter/@Setter → gera getters e setters
+            - @Builder → padrão Builder para criar objetos
+            - @Slf4j → cria logger automaticamente
+            Reduz 80% do "boilerplate" em classes Java.
+            scope=provided: só precisa na compilação, não vai para o .jar final.
+        -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!--
+            mapstruct:
+            Gera código de conversão entre objetos automaticamente.
+            Ex: PixKeyEntity (banco) ↔ PixKeyResponse (API)
+            Em vez de copiar campo por campo manualmente, MapStruct
+            gera o código de conversão em tempo de compilação.
+            Mais seguro que fazer na mão (não esquece campos).
+        -->
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+            <version>${mapstruct.version}</version>
+        </dependency>
+
+        <!-- ==================== DOCUMENTAÇÃO ==================== -->
+
+        <!--
+            springdoc-openapi-starter-webmvc-ui:
+            Gera documentação Swagger/OpenAPI automaticamente a partir
+            dos controllers. Acesse /swagger-ui.html para ver uma interface
+            interativa onde você pode testar todos os endpoints.
+            Essencial para demonstrar a API no portfolio.
+        -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>${springdoc.version}</version>
+        </dependency>
+
+        <!-- ==================== JWT (AUTENTICAÇÃO) ==================== -->
+
+        <!--
+            jjwt (JSON Web Token):
+            Biblioteca para criar e validar tokens JWT.
+            JWT é o padrão da indústria para autenticação stateless:
+            1. Usuário faz login → recebe um token JWT
+            2. Em cada request, envia o token no header Authorization
+            3. Servidor valida o token sem consultar banco de dados
+            Dividido em 3 módulos: API (interfaces), Impl (lógica), Jackson (JSON).
+        -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>${jjwt.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- ==================== TESTES ==================== -->
+
+        <!--
+            spring-boot-starter-test:
+            Kit completo de testes. Inclui:
+            - JUnit 5 → framework de testes (equivalente ao Jest)
+            - Mockito → criação de mocks (simula dependências)
+            - AssertJ → assertions fluentes (assertThat(...).isEqualTo(...))
+            - Spring Test → contexto Spring para testes de integração
+            scope=test: só disponível nos testes, não vai para produção.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!--
+            spring-security-test:
+            Utilitários para testar endpoints protegidos:
+            - @WithMockUser → simula um usuário autenticado
+            - SecurityMockMvcRequestPostProcessors → adiciona tokens em requests de teste
+            Sem isso, todos os testes de controller falhariam com 401 Unauthorized.
+        -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!--
+            testcontainers:
+            Cria containers Docker reais durante os testes.
+            Em vez de usar banco H2 em memória (que se comporta diferente do Postgres),
+            sobe um PostgreSQL e Kafka reais via Docker. Assim os testes refletem
+            exatamente o comportamento de produção.
+        -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${testcontainers.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>${testcontainers.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>kafka</artifactId>
+            <version>${testcontainers.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!--
+            spring-kafka-test:
+            Utilitários para testar consumers/producers Kafka.
+            Inclui EmbeddedKafkaBroker para testes sem Docker.
+        -->
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+
+            <!--
+                spring-boot-maven-plugin:
+                Empacota a aplicação em um .jar executável com Tomcat embutido.
+                Exclui o Lombok do .jar final (não é necessário em runtime).
+                Comando: mvn package → gera target/pixhub-0.1.0.jar
+            -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+
+            <!--
+                maven-compiler-plugin:
+                Configura o compilador Java. Aqui é onde integramos o Lombok
+                e MapStruct como "annotation processors" — eles geram código
+                durante a compilação (antes do programa rodar).
+                A ordem importa: Lombok precisa rodar ANTES do MapStruct.
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok-mapstruct-binding</artifactId>
+                            <version>${lombok-mapstruct-binding.version}</version>
+                        </path>
+                        <path>
+                            <groupId>org.mapstruct</groupId>
+                            <artifactId>mapstruct-processor</artifactId>
+                            <version>${mapstruct.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                    <compilerArgs>
+                        <!--
+                            componentModel=spring: MapStruct gera classes com @Component,
+                            permitindo injeção de dependência via @Autowired.
+                        -->
+                        <arg>-Amapstruct.defaultComponentModel=spring</arg>
+                    </compilerArgs>
+                </configuration>
+            </plugin>
+
+            <!--
+                jacoco-maven-plugin:
+                Mede cobertura de testes (% do código exercitado pelos testes).
+                - prepare-agent: instrumenta o bytecode antes dos testes
+                - report: gera relatório HTML em target/site/jacoco/
+                Meta: mínimo 80% de cobertura para linhas de código.
+            -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.12</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+        </plugins>
+    </build>
+
+</project>

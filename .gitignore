@@ -1,0 +1,48 @@
+# ============================================================
+# .gitignore — Arquivos que o Git deve ignorar
+# ============================================================
+# Regra geral: não versionar arquivos que são:
+# 1. Gerados automaticamente (build, dependências)
+# 2. Específicos da máquina (configurações de IDE)
+# 3. Sensíveis (credenciais, chaves)
+# ============================================================
+
+# ---- Build output ----
+# target/ é onde o Maven coloca os arquivos compilados e o .jar final.
+# Gerado por: mvn compile, mvn package
+target/
+
+# ---- IDE (IntelliJ IDEA) ----
+# Configurações específicas da sua máquina (paths, SDK, etc).
+# Cada desenvolvedor tem as suas, não devem ser compartilhadas.
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# ---- IDE (VS Code) ----
+.vscode/
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# ---- IDE (Eclipse) ----
+.classpath
+.project
+.settings/
+
+# ---- Sistema operacional ----
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---- Variáveis de ambiente (SENSÍVEL!) ----
+# .env contém credenciais reais. NUNCA versionar.
+# Use .env.example como template (sem valores reais).
+.env
+
+# ---- Logs ----
+*.log
+logs/
+
+# ---- Maven wrapper (se usado) ----
+.mvn/wrapper/maven-wrapper.jar

@@ -1,0 +1,42 @@
+# ============================================================
+# application-prod.yml — Configurações para produção
+# ============================================================
+# Ativado quando: SPRING_PROFILES_ACTIVE=prod
+# TODAS as credenciais vêm de variáveis de ambiente.
+# NUNCA hardcoded — segurança e portabilidade.
+#
+# Variáveis de ambiente são injetadas pelo Docker/Kubernetes
+# no momento do deploy (via docker-compose, Helm, etc).
+# ============================================================
+
+spring:
+  datasource:
+    # ${VARIAVEL} = lê valor de variável de ambiente do sistema operacional.
+    # Se DATABASE_URL não existir, a aplicação falha ao iniciar (proposital).
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+
+  jpa:
+    # Em produção: NÃO mostrar SQL (performance e segurança).
+    show-sql: false
+    hibernate:
+      # validate: apenas verifica se o schema bate com as entidades.
+      # Se não bater, a aplicação falha ao iniciar — melhor que corromper dados.
+      ddl-auto: validate
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    consumer:
+      group-id: pixhub-prod
+      auto-offset-reset: earliest
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+logging:
+  level:
+    # Em produção, log nível WARN ou superior.
+    # DEBUG geraria GBs de logs por dia.
+    com.riel.pixhub: WARN
+    org.springframework: WARN

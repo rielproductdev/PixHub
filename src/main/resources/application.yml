@@ -1,0 +1,79 @@
+# ============================================================
+# application.yml — Configuração principal da aplicação
+# ============================================================
+# Spring Boot carrega este arquivo automaticamente ao iniciar.
+# Configurações aqui são compartilhadas entre TODOS os profiles.
+# Valores específicos de cada ambiente vão em application-{profile}.yml
+#
+# Profiles disponíveis:
+# - dev: desenvolvimento local (Docker Compose)
+# - test: testes automatizados (Testcontainers)
+# - prod: produção (variáveis de ambiente)
+# ============================================================
+
+spring:
+  application:
+    # Nome da aplicação — aparece nos logs e no Actuator /info
+    name: pixhub
+
+  profiles:
+    # Profile ativo padrão. Se nenhum for especificado, usa "dev".
+    # Em produção, sobrescrever com: SPRING_PROFILES_ACTIVE=prod
+    active: dev
+
+  jpa:
+    # open-in-view=false: desabilita o padrão "Open Session in View".
+    # Por quê? Com open-in-view=true (padrão), a sessão do Hibernate
+    # fica aberta durante toda a request HTTP, incluindo a renderização.
+    # Isso causa queries N+1 acidentais e acoplamento com a camada web.
+    # Em APIs REST, sempre desabilitar.
+    open-in-view: false
+
+    hibernate:
+      # ddl-auto=validate: Hibernate apenas VALIDA se as entidades
+      # batem com o schema do banco, mas NÃO altera o banco.
+      # Quem altera o banco são as migrations do Flyway.
+      # Opções: none, validate, update, create, create-drop
+      # Em produção, NUNCA usar update/create (pode perder dados).
+      ddl-auto: validate
+
+    properties:
+      hibernate:
+        # Dialeto específico para PostgreSQL — diz ao Hibernate
+        # como gerar SQL otimizado para PostgreSQL.
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  flyway:
+    # Habilita Flyway para rodar migrations automaticamente ao iniciar.
+    # Migrations ficam em: src/main/resources/db/migration/
+    enabled: true
+
+# ============================================================
+# Actuator — Endpoints de monitoramento
+# ============================================================
+management:
+  endpoints:
+    web:
+      exposure:
+        # Expõe apenas health e info por segurança.
+        # Em produção, nunca expor "env" ou "beans" (vazam dados sensíveis).
+        include: health,info
+
+  endpoint:
+    health:
+      # show-details=when-authorized: mostra detalhes do health
+      # (status do banco, Kafka, disk space) apenas para usuários autenticados.
+      show-details: when-authorized
+
+# ============================================================
+# SpringDoc/Swagger — Documentação automática da API
+# ============================================================
+springdoc:
+  api-docs:
+    # Endpoint que retorna o JSON da especificação OpenAPI.
+    # Ferramentas de geração de código (como openapi-generator) consomem este endpoint.
+    path: /api-docs
+  swagger-ui:
+    # URL da interface visual Swagger UI.
+    # Acesse no navegador para testar endpoints interativamente.
+    path: /swagger-ui.html
