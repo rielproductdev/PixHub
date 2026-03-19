@@ -59,17 +59,19 @@ public class SecurityConfig {
                 // - /actuator/** → health checks (Docker, load balancer precisam acessar)
                 // - /swagger-ui/** e /api-docs/** → documentação da API
                 // - /v3/api-docs/** → especificação OpenAPI em JSON
+                // - /api/** → endpoints REST (temporário até implementar JWT na Fase de Auth)
                 .requestMatchers(
                     "/actuator/**",
                     "/swagger-ui/**",
                     "/swagger-ui.html",
                     "/api-docs/**",
-                    "/v3/api-docs/**"
+                    "/v3/api-docs/**",
+                    "/api/**"
                 ).permitAll()
 
                 // Todos os outros endpoints requerem autenticação.
-                // Na Fase 01, isso bloqueia tudo que não está na lista acima.
-                // Na Fase de Auth, requests com JWT válido passarão.
+                // Quando implementarmos JWT, moveremos /api/** para authenticated()
+                // e apenas /auth/** (login, register) ficará em permitAll().
                 .anyRequest().authenticated()
             );
 
