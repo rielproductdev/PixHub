@@ -46,3 +46,6 @@ logs/
 
 # ---- Maven wrapper (se usado) ----
 .mvn/wrapper/maven-wrapper.jar
+
+# Claude Code
+.claude/
