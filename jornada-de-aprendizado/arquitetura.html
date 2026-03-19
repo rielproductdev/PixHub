@@ -1,0 +1,1946 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa da Arquitetura — PixHub</title>
+    <style>
+        /* ========================================
+           RESET E BASE
+           ======================================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f1117;
+            color: #e1e4e8;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* ========================================
+           HEADER FIXO
+           ======================================== */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 56px;
+            background-color: #161b22;
+            border-bottom: 1px solid #30363d;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            z-index: 1000;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .header-left a {
+            color: #8b949e;
+            text-decoration: none;
+            font-size: 13px;
+            transition: color 0.2s;
+        }
+
+        .header-left a:hover {
+            color: #58a6ff;
+        }
+
+        .header-title h1 {
+            font-size: 16px;
+            color: #f0f6fc;
+            font-weight: 600;
+        }
+
+        .header-title p {
+            font-size: 11px;
+            color: #8b949e;
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-controls button {
+            background-color: #21262d;
+            border: 1px solid #30363d;
+            color: #c9d1d9;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .header-controls button:hover {
+            background-color: #30363d;
+            color: #f0f6fc;
+        }
+
+        .zoom-display {
+            background-color: #0f1117;
+            border: 1px solid #30363d;
+            color: #8b949e;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            min-width: 60px;
+            text-align: center;
+            font-family: 'Cascadia Code', 'Fira Code', monospace;
+        }
+
+        /* ========================================
+           CANVAS INFINITO
+           ======================================== */
+        .canvas-viewport {
+            position: fixed;
+            top: 56px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            overflow: hidden;
+            cursor: grab;
+            /* Grid sutil de fundo */
+            background-color: #0f1117;
+            background-image:
+                radial-gradient(circle, #21262d 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+
+        .canvas-viewport:active {
+            cursor: grabbing;
+        }
+
+        .canvas-world {
+            position: absolute;
+            top: 0;
+            left: 0;
+            transform-origin: 0 0;
+            will-change: transform;
+        }
+
+        /* ========================================
+           SVG PARA LINHAS DE RELACIONAMENTO
+           ======================================== */
+        .relationships-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4000px;
+            height: 3000px;
+            pointer-events: none;
+        }
+
+        .rel-line {
+            stroke-width: 2;
+            fill: none;
+        }
+
+        .rel-line-fk {
+            stroke: #484f58;
+        }
+
+        .rel-line-audit {
+            stroke: #484f58;
+            stroke-dasharray: 6 4;
+            opacity: 0.5;
+        }
+
+        .rel-label {
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 11px;
+            fill: #8b949e;
+        }
+
+        .rel-arrowhead {
+            fill: #484f58;
+        }
+
+        /* ========================================
+           ENTITY CARDS
+           ======================================== */
+        .entity-card {
+            position: absolute;
+            width: 320px;
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            overflow: visible;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            transition: box-shadow 0.2s;
+        }
+
+        .entity-card:hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+        }
+
+        .card-header {
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid #30363d;
+            cursor: grab;
+            user-select: none;
+        }
+
+        .card-header:active {
+            cursor: grabbing;
+        }
+
+        .entity-card.dragging {
+            z-index: 100;
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.8);
+        }
+
+        .card-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .card-header-text h3 {
+            font-size: 15px;
+            color: #f0f6fc;
+            font-weight: 700;
+        }
+
+        .card-header-text p {
+            font-size: 11px;
+            color: #8b949e;
+            margin-top: 1px;
+        }
+
+        .card-body {
+            padding: 10px 0;
+        }
+
+        .field-row {
+            display: flex;
+            align-items: center;
+            padding: 5px 18px;
+            font-size: 13px;
+            transition: background-color 0.15s;
+            position: relative;
+        }
+
+        .field-row:hover {
+            background-color: #1c2333;
+        }
+
+        .field-name {
+            color: #e1e4e8;
+            font-family: 'Cascadia Code', 'Fira Code', monospace;
+            font-size: 12px;
+            flex: 1;
+        }
+
+        .field-badges {
+            display: flex;
+            gap: 4px;
+            margin-left: 8px;
+        }
+
+        .field-badge {
+            font-size: 9px;
+            padding: 1px 5px;
+            border-radius: 4px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+
+        .badge-pk {
+            background-color: rgba(88, 166, 255, 0.15);
+            color: #58a6ff;
+            border: 1px solid rgba(88, 166, 255, 0.3);
+        }
+
+        .badge-fk {
+            background-color: rgba(240, 136, 62, 0.15);
+            color: #f0883e;
+            border: 1px solid rgba(240, 136, 62, 0.3);
+        }
+
+        .badge-enum {
+            background-color: rgba(163, 113, 247, 0.15);
+            color: #a371f7;
+            border: 1px solid rgba(163, 113, 247, 0.3);
+        }
+
+        .badge-json {
+            background-color: rgba(63, 185, 80, 0.15);
+            color: #3fb950;
+            border: 1px solid rgba(63, 185, 80, 0.3);
+        }
+
+        .badge-unique {
+            background-color: rgba(248, 81, 73, 0.15);
+            color: #f85149;
+            border: 1px solid rgba(248, 81, 73, 0.3);
+        }
+
+        /* ========================================
+           INFO ICON + TOOLTIP
+           ======================================== */
+        .info-icon {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background-color: #30363d;
+            color: #8b949e;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: help;
+            margin-left: 6px;
+            flex-shrink: 0;
+            transition: all 0.2s;
+            font-style: italic;
+            font-family: serif;
+            font-weight: 700;
+        }
+
+        .info-icon:hover {
+            background-color: #58a6ff;
+            color: #fff;
+        }
+
+        /* Tooltip global — posicionado via JS no body, fora do canvas */
+        #globalTooltip {
+            position: fixed;
+            background-color: #1c2333;
+            border: 1px solid #58a6ff;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 12px;
+            color: #c9d1d9;
+            line-height: 1.6;
+            max-width: 300px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            z-index: 2000;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+        }
+
+        #globalTooltip.visible {
+            opacity: 1;
+        }
+
+        #globalTooltip::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            border: 6px solid transparent;
+        }
+
+        #globalTooltip.arrow-left::before {
+            right: 100%;
+            border-right-color: #58a6ff;
+        }
+
+        #globalTooltip.arrow-right::before {
+            left: 100%;
+            border-left-color: #58a6ff;
+        }
+
+        /* Tooltip inline dentro do card — escondido, so armazena o texto */
+        .tooltip {
+            display: none;
+        }
+
+        /* ========================================
+           LEGENDA
+           ======================================== */
+        .legend {
+            position: fixed;
+            top: 72px;
+            right: 16px;
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 10px;
+            padding: 16px;
+            z-index: 900;
+            font-size: 12px;
+            min-width: 200px;
+        }
+
+        .legend h4 {
+            color: #f0f6fc;
+            font-size: 12px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+            color: #8b949e;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+            flex-shrink: 0;
+        }
+
+        .legend-line {
+            width: 24px;
+            height: 2px;
+            flex-shrink: 0;
+        }
+
+        .legend-line-solid {
+            background-color: #484f58;
+        }
+
+        .legend-line-dashed {
+            background: repeating-linear-gradient(
+                90deg,
+                #484f58 0px, #484f58 6px,
+                transparent 6px, transparent 10px
+            );
+        }
+
+        .legend-divider {
+            border-top: 1px solid #30363d;
+            margin: 8px 0;
+        }
+
+        .legend-badge-demo {
+            display: inline-block;
+            font-size: 9px;
+            padding: 1px 5px;
+            border-radius: 4px;
+            font-weight: 700;
+        }
+
+        /* ========================================
+           MINIMAP
+           ======================================== */
+        .minimap {
+            position: fixed;
+            bottom: 16px;
+            right: 16px;
+            width: 200px;
+            height: 140px;
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            overflow: hidden;
+            z-index: 900;
+        }
+
+        .minimap-content {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .minimap-dot {
+            position: absolute;
+            border-radius: 3px;
+            opacity: 0.7;
+        }
+
+        .minimap-viewport {
+            position: absolute;
+            border: 1.5px solid #58a6ff;
+            border-radius: 2px;
+            background-color: rgba(88, 166, 255, 0.08);
+        }
+
+        .minimap-label {
+            position: absolute;
+            bottom: 4px;
+            left: 6px;
+            font-size: 9px;
+            color: #484f58;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* ========================================
+           CARD ACCENT COLORS
+           ======================================== */
+        .accent-blue .card-header { border-top: 3px solid #58a6ff; }
+        .accent-blue .card-icon { background-color: rgba(88, 166, 255, 0.15); color: #58a6ff; }
+
+        .accent-green .card-header { border-top: 3px solid #3fb950; }
+        .accent-green .card-icon { background-color: rgba(63, 185, 80, 0.15); color: #3fb950; }
+
+        .accent-orange .card-header { border-top: 3px solid #f0883e; }
+        .accent-orange .card-icon { background-color: rgba(240, 136, 62, 0.15); color: #f0883e; }
+
+        .accent-purple .card-header { border-top: 3px solid #a371f7; }
+        .accent-purple .card-icon { background-color: rgba(163, 113, 247, 0.15); color: #a371f7; }
+
+        .accent-red .card-header { border-top: 3px solid #f85149; }
+        .accent-red .card-icon { background-color: rgba(248, 81, 73, 0.15); color: #f85149; }
+
+        .accent-lightblue .card-header { border-top: 3px solid #79c0ff; }
+        .accent-lightblue .card-icon { background-color: rgba(121, 192, 255, 0.15); color: #79c0ff; }
+
+        .accent-teal .card-header { border-top: 3px solid #2dd4bf; }
+        .accent-teal .card-icon { background-color: rgba(45, 212, 191, 0.15); color: #2dd4bf; }
+
+        .accent-yellow .card-header { border-top: 3px solid #e3b341; }
+        .accent-yellow .card-icon { background-color: rgba(227, 179, 65, 0.15); color: #e3b341; }
+
+        .accent-pink .card-header { border-top: 3px solid #db61a2; }
+        .accent-pink .card-icon { background-color: rgba(219, 97, 162, 0.15); color: #db61a2; }
+
+        /* ========================================
+           INFRA CARD (Fase 01) — layout mais compacto
+           ======================================== */
+        .infra-card {
+            position: absolute;
+            width: 260px;
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            overflow: visible;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            transition: box-shadow 0.2s;
+        }
+
+        .infra-card:hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+        }
+
+        .infra-card.dragging {
+            z-index: 100;
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.8);
+        }
+
+        .infra-card .card-header {
+            padding: 12px 16px;
+        }
+
+        .infra-card .card-body {
+            padding: 8px 16px 12px;
+        }
+
+        .infra-card .card-body p {
+            font-size: 12px;
+            color: #8b949e;
+            line-height: 1.5;
+            margin-bottom: 6px;
+        }
+
+        .infra-card .card-body p:last-child {
+            margin-bottom: 0;
+        }
+
+        .infra-tag {
+            display: inline-block;
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background-color: rgba(139, 148, 158, 0.15);
+            color: #8b949e;
+            border: 1px solid #30363d;
+            margin-right: 4px;
+            margin-bottom: 4px;
+        }
+
+        /* ========================================
+           SERVICE CARD (Fase 03) — mesmo layout do infra-card
+           ======================================== */
+        .service-card {
+            position: absolute;
+            width: 280px;
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            overflow: visible;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            transition: box-shadow 0.2s;
+        }
+
+        .service-card:hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+        }
+
+        .service-card.dragging {
+            z-index: 100;
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.8);
+        }
+
+        .service-card .card-header {
+            padding: 12px 16px;
+        }
+
+        .service-card .card-body {
+            padding: 8px 16px 12px;
+        }
+
+        .service-card .card-body p {
+            font-size: 12px;
+            color: #8b949e;
+            line-height: 1.5;
+            margin-bottom: 6px;
+        }
+
+        .service-card .card-body p:last-child {
+            margin-bottom: 0;
+        }
+
+        .service-tag {
+            display: inline-block;
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background-color: rgba(88, 166, 255, 0.1);
+            color: #79c0ff;
+            border: 1px solid rgba(88, 166, 255, 0.2);
+            margin-right: 4px;
+            margin-bottom: 4px;
+        }
+
+        /* ========================================
+           ZONE LABELS (separadores de area)
+           ======================================== */
+        .zone-label {
+            position: absolute;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #30363d;
+            pointer-events: none;
+        }
+
+        .zone-divider {
+            position: absolute;
+            height: 2px;
+            background: repeating-linear-gradient(
+                90deg,
+                #21262d 0px, #21262d 8px,
+                transparent 8px, transparent 16px
+            );
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ==========================================
+         HEADER
+         ========================================== -->
+    <header class="header">
+        <div class="header-left">
+            <a href="index.html">&larr; Voltar para Jornada</a>
+            <div class="header-title">
+                <h1>Mapa da Arquitetura — PixHub</h1>
+                <p>Relacionamentos entre entidades do dominio</p>
+            </div>
+        </div>
+        <div class="header-controls">
+            <button onclick="zoomOut()" title="Diminuir zoom">−</button>
+            <span class="zoom-display" id="zoomDisplay">100%</span>
+            <button onclick="zoomIn()" title="Aumentar zoom">+</button>
+            <button onclick="resetView()" title="Centralizar tudo">Resetar Vista</button>
+        </div>
+    </header>
+
+    <!-- ==========================================
+         LEGENDA
+         ========================================== -->
+    <div class="legend">
+        <h4>Legenda</h4>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #58a6ff;"></div>
+            Account
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #3fb950;"></div>
+            PixKey
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #f0883e;"></div>
+            Transaction
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #a371f7;"></div>
+            QrCode
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #f85149;"></div>
+            AuditLog
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #79c0ff;"></div>
+            WebhookConfig
+        </div>
+        <div class="legend-divider"></div>
+        <h4 style="margin-top:4px;">Camada de Servico (Fase 03)</h4>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #58a6ff;"></div>
+            Controller
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #f0883e;"></div>
+            Service
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #3fb950;"></div>
+            DTOs
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #a371f7;"></div>
+            Mapper
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #f85149;"></div>
+            Exception Handler
+        </div>
+        <div class="legend-divider"></div>
+        <h4 style="margin-top:4px;">Infraestrutura (Fase 01)</h4>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #2dd4bf;"></div>
+            PostgreSQL / Kafka
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #e3b341;"></div>
+            Spring Boot / Flyway
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #db61a2;"></div>
+            Docker
+        </div>
+        <div class="legend-divider"></div>
+        <div class="legend-item">
+            <div class="legend-line legend-line-solid"></div>
+            FK (chave estrangeira)
+        </div>
+        <div class="legend-item">
+            <div class="legend-line legend-line-dashed"></div>
+            Auditoria (audita tudo)
+        </div>
+        <div class="legend-divider"></div>
+        <div class="legend-item">
+            <span class="legend-badge-demo badge-pk" style="font-size:9px;padding:1px 5px;border-radius:4px;">PK</span>
+            Chave primaria
+        </div>
+        <div class="legend-item">
+            <span class="legend-badge-demo badge-fk" style="font-size:9px;padding:1px 5px;border-radius:4px;">FK</span>
+            Chave estrangeira
+        </div>
+        <div class="legend-item">
+            <span class="legend-badge-demo badge-enum" style="font-size:9px;padding:1px 5px;border-radius:4px;">ENUM</span>
+            Enumeracao
+        </div>
+        <div class="legend-item">
+            <span class="legend-badge-demo badge-json" style="font-size:9px;padding:1px 5px;border-radius:4px;">JSON</span>
+            Campo JSON
+        </div>
+        <div class="legend-item">
+            <span class="legend-badge-demo badge-unique" style="font-size:9px;padding:1px 5px;border-radius:4px;">UNQ</span>
+            Indice unico
+        </div>
+        <div class="legend-divider"></div>
+        <div class="legend-item">
+            <div style="width:16px;height:16px;border-radius:50%;background:#30363d;display:flex;align-items:center;justify-content:center;font-size:10px;font-style:italic;font-family:serif;font-weight:700;color:#8b949e;flex-shrink:0;">i</div>
+            Hover para detalhes
+        </div>
+    </div>
+
+    <!-- ==========================================
+         MINIMAP
+         ========================================== -->
+    <div class="minimap">
+        <div class="minimap-content" id="minimapContent">
+            <!-- Dots: Infra (Fase 01) -->
+            <div class="minimap-dot" style="left:5%;top:8%;width:18px;height:10px;background-color:rgba(219,97,162,0.5);"></div>
+            <div class="minimap-dot" style="left:20%;top:8%;width:18px;height:10px;background-color:rgba(45,212,191,0.5);"></div>
+            <div class="minimap-dot" style="left:35%;top:8%;width:18px;height:10px;background-color:rgba(45,212,191,0.5);"></div>
+            <div class="minimap-dot" style="left:50%;top:8%;width:18px;height:10px;background-color:rgba(227,179,65,0.5);"></div>
+            <div class="minimap-dot" style="left:65%;top:8%;width:18px;height:10px;background-color:rgba(227,179,65,0.5);"></div>
+            <!-- Dots: Dominio (Fase 02) -->
+            <div class="minimap-dot" style="left:15%;top:35%;width:22px;height:18px;background-color:rgba(88,166,255,0.5);"></div>
+            <div class="minimap-dot" style="left:40%;top:18%;width:22px;height:14px;background-color:rgba(63,185,80,0.5);"></div>
+            <div class="minimap-dot" style="left:60%;top:35%;width:22px;height:20px;background-color:rgba(240,136,62,0.5);"></div>
+            <div class="minimap-dot" style="left:40%;top:62%;width:22px;height:18px;background-color:rgba(163,113,247,0.5);"></div>
+            <div class="minimap-dot" style="left:8%;top:68%;width:22px;height:16px;background-color:rgba(248,81,73,0.5);"></div>
+            <div class="minimap-dot" style="left:78%;top:22%;width:22px;height:14px;background-color:rgba(121,192,255,0.5);"></div>
+            <!-- Fase 03 dots -->
+            <div class="minimap-dot" style="left:5%;top:78%;width:18px;height:8px;background-color:rgba(88,166,255,0.4);"></div>
+            <div class="minimap-dot" style="left:20%;top:78%;width:18px;height:8px;background-color:rgba(63,185,80,0.4);"></div>
+            <div class="minimap-dot" style="left:38%;top:78%;width:18px;height:8px;background-color:rgba(240,136,62,0.4);"></div>
+            <div class="minimap-dot" style="left:55%;top:78%;width:18px;height:8px;background-color:rgba(163,113,247,0.4);"></div>
+            <div class="minimap-dot" style="left:72%;top:78%;width:18px;height:8px;background-color:rgba(121,192,255,0.4);"></div>
+            <div class="minimap-dot" style="left:5%;top:88%;width:18px;height:8px;background-color:rgba(248,81,73,0.4);"></div>
+            <div class="minimap-dot" style="left:20%;top:88%;width:18px;height:8px;background-color:rgba(227,179,65,0.4);"></div>
+            <div class="minimap-dot" style="left:38%;top:88%;width:18px;height:8px;background-color:rgba(45,212,191,0.4);"></div>
+            <div class="minimap-dot" style="left:55%;top:88%;width:18px;height:8px;background-color:rgba(219,97,162,0.4);"></div>
+            <div class="minimap-viewport" id="minimapViewport"></div>
+            <div class="minimap-label">minimap</div>
+        </div>
+    </div>
+
+    <!-- Tooltip global flutuante -->
+    <div id="globalTooltip"></div>
+
+    <!-- ==========================================
+         CANVAS
+         ========================================== -->
+    <div class="canvas-viewport" id="viewport">
+        <div class="canvas-world" id="world">
+
+            <!-- SVG para linhas de relacionamento — redesenhado dinamicamente pelo JS -->
+            <svg class="relationships-svg" id="relSvg">
+                <defs>
+                    <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                        <polygon points="0 0, 8 3, 0 6" class="rel-arrowhead"/>
+                    </marker>
+                    <marker id="arrowhead-dashed" markerWidth="6" markerHeight="5" refX="6" refY="2.5" orient="auto">
+                        <polygon points="0 0, 6 2.5, 0 5" fill="#484f58" opacity="0.5"/>
+                    </marker>
+                    <marker id="arrowhead-infra" markerWidth="6" markerHeight="5" refX="6" refY="2.5" orient="auto">
+                        <polygon points="0 0, 6 2.5, 0 5" fill="#30363d"/>
+                    </marker>
+                </defs>
+            </svg>
+
+            <!-- ==========================================
+                 ZONE: Fase 01 — Infraestrutura
+                 ========================================== -->
+            <div class="zone-label" style="left: 60px; top: -80px;">Fase 01 — Infraestrutura</div>
+            <div class="zone-divider" style="left: 40px; top: -40px; width: 1900px;"></div>
+
+            <!-- CARD INFRA: Docker -->
+            <div class="infra-card accent-pink" style="left: 60px; top: -30px;" id="card-docker">
+                <div class="card-header">
+                    <div class="card-icon">&#128051;</div>
+                    <div class="card-header-text">
+                        <h3>Docker</h3>
+                        <p>Containerizacao</p>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p>Orquestra todos os servicos via <strong>docker compose</strong>. Cada servico roda em seu container isolado.</p>
+                    <div>
+                        <span class="infra-tag">docker-compose.yml</span>
+                        <span class="infra-tag">Dockerfile</span>
+                        <span class="infra-tag">Multi-stage Build</span>
+                    </div>
+                    <span class="info-icon" style="margin-top:8px;">i</span>
+                    <div class="tooltip">Um comando sobe tudo: banco, Kafka e app. Sem instalar nada na maquina. Padrao em toda empresa seria.</div>
+                </div>
+            </div>
+
+            <!-- CARD INFRA: PostgreSQL -->
+            <div class="infra-card accent-teal" style="left: 380px; top: -30px;" id="card-postgres">
+                <div class="card-header">
+                    <div class="card-icon">&#128450;</div>
+                    <div class="card-header-text">
+                        <h3>PostgreSQL 16</h3>
+                        <p>Banco de dados relacional</p>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p>Armazena todas as entidades do dominio. Roda no Docker, porta 5432.</p>
+                    <div>
+                        <span class="infra-tag">Relacional</span>
+                        <span class="infra-tag">ACID</span>
+                        <span class="infra-tag">Porta 5432</span>
+                    </div>
+                    <span class="info-icon" style="margin-top:8px;">i</span>
+                    <div class="tooltip">Banco mais usado em fintechs. Suporta JSON, indices avancados, transacoes ACID. As entidades da Fase 02 moram aqui.</div>
+                </div>
+            </div>
+
+            <!-- CARD INFRA: Apache Kafka -->
+            <div class="infra-card accent-teal" style="left: 700px; top: -30px;" id="card-kafka">
+                <div class="card-header">
+                    <div class="card-icon">&#9889;</div>
+                    <div class="card-header-text">
+                        <h3>Apache Kafka</h3>
+                        <p>Mensageria assincrona</p>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p>Processa transacoes PIX de forma assincrona. Modo KRaft (sem Zookeeper).</p>
+                    <div>
+                        <span class="infra-tag">KRaft</span>
+                        <span class="infra-tag">Topics</span>
+                        <span class="infra-tag">Porta 9092</span>
+                    </div>
+                    <span class="info-icon" style="margin-top:8px;">i</span>
+                    <div class="tooltip">Transaction muda de PENDING para PROCESSING quando Kafka consome a mensagem. Garante que o sistema nao trava esperando o banco.</div>
+                </div>
+            </div>
+
+            <!-- CARD INFRA: Spring Boot -->
+            <div class="infra-card accent-yellow" style="left: 1020px; top: -30px;" id="card-springboot">
+                <div class="card-header">
+                    <div class="card-icon">&#9881;</div>
+                    <div class="card-header-text">
+                        <h3>Spring Boot 3.2</h3>
+                        <p>Framework da aplicacao</p>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p>Framework que estrutura a API REST. Gerencia dependencias, seguranca, profiles e auto-configuracao.</p>
+                    <div>
+                        <span class="infra-tag">Java 17</span>
+                        <span class="infra-tag">REST API</span>
+                        <span class="infra-tag">Profiles</span>
+                        <span class="infra-tag">Security</span>
+                    </div>
+                    <span class="info-icon" style="margin-top:8px;">i</span>
+                    <div class="tooltip">As entidades JPA, repositories e services da Fase 02/03 rodam dentro do Spring Boot. Ele e o "motor" da aplicacao.</div>
+                </div>
+            </div>
+
+            <!-- CARD INFRA: Flyway -->
+            <div class="infra-card accent-yellow" style="left: 1340px; top: -30px;" id="card-flyway">
+                <div class="card-header">
+                    <div class="card-icon">&#9992;</div>
+                    <div class="card-header-text">
+                        <h3>Flyway</h3>
+                        <p>Migrations do banco</p>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p>Controla versao do schema do banco. Migrations V1, V2... executam em ordem. Nunca alterar uma ja executada.</p>
+                    <div>
+                        <span class="infra-tag">V1..V7</span>
+                        <span class="infra-tag">Versionado</span>
+                        <span class="infra-tag">Imutavel</span>
+                    </div>
+                    <span class="info-icon" style="margin-top:8px;">i</span>
+                    <div class="tooltip">Cada entidade da Fase 02 tem uma migration correspondente. Flyway garante que dev, staging e prod tenham o mesmo schema.</div>
+                </div>
+            </div>
+
+            <!-- ==========================================
+                 ZONE: Fase 02 — Dominio e Entidades
+                 ========================================== -->
+            <div class="zone-label" style="left: 60px; top: 240px;">Fase 02 — Dominio e Entidades</div>
+            <div class="zone-divider" style="left: 40px; top: 280px; width: 1900px;"></div>
+
+            <!-- ==========================================
+                 CARD: Account (center-left)
+                 ========================================== -->
+            <div class="entity-card accent-blue" style="left: 260px; top: 320px;" id="card-account">
+                <div class="card-header">
+                    <div class="card-icon">&#9878;</div>
+                    <div class="card-header-text">
+                        <h3>Account</h3>
+                        <p>Conta bancaria</p>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="field-row">
+                        <span class="field-name">id</span>
+                        <div class="field-badges"><span class="field-badge badge-pk">PK</span></div>
+                        <span class="info-icon">i</span>
+                        <div class="tooltip tooltip-right">UUID em vez de auto-increment: impossivel de prever, sem conflito em sistemas distribuidos. Padrao em fintech.</div>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">holderName</span>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">holderDocument</span>
+                        <span class="info-icon">i</span>
+                        <div class="tooltip tooltip-right">CPF ou CNPJ do titular. A validacao de digitos verificadores e obrigatoria. Define se a conta e PF ou PJ.</div>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">bankCode</span>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">branch</span>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">accountNumber</span>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">accountType</span>
+                        <div class="field-badges"><span class="field-badge badge-enum">ENUM</span></div>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">balance</span>
+                        <span class="info-icon">i</span>
+                        <div class="tooltip tooltip-right">Em producao, seria BigDecimal para evitar erros de ponto flutuante (0.1 + 0.2 ≠ 0.3 com Double).</div>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">status</span>
+                        <div class="field-badges"><span class="field-badge badge-enum">ENUM</span></div>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">createdAt</span>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">updatedAt</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==========================================
+                 CARD: PixKey (top-center)
+                 ========================================== -->
+            <div class="entity-card accent-green" style="left: 780px; top: 80px;" id="card-pixkey">
+                <div class="card-header">
+                    <div class="card-icon">&#9919;</div>
+                    <div class="card-header-text">
+                        <h3>PixKey</h3>
+                        <p>Chave PIX</p>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="field-row">
+                        <span class="field-name">id</span>
+                        <div class="field-badges"><span class="field-badge badge-pk">PK</span></div>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">keyType</span>
+                        <div class="field-badges"><span class="field-badge badge-enum">ENUM</span></div>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">keyValue</span>
+                        <div class="field-badges"><span class="field-badge badge-unique">UNQ</span></div>
+                        <span class="info-icon">i</span>
+                        <div class="tooltip">UNIQUE — uma chave PIX e unica no Brasil inteiro. O indice no banco garante isso mesmo que o codigo tenha bug.</div>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">accountId</span>
+                        <div class="field-badges"><span class="field-badge badge-fk">FK</span></div>
+                        <span class="info-icon">i</span>
+                        <div class="tooltip">FK para Account. Regra do BACEN: max 5 chaves por conta PF, 20 por PJ.</div>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">status</span>
+                        <div class="field-badges"><span class="field-badge badge-enum">ENUM</span></div>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">createdAt</span>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">deactivatedAt</span>
+                        <span class="info-icon">i</span>
+                        <div class="tooltip">Soft delete — nunca deletamos dados em fintech. A chave e desativada, nao apagada. O BACEN pode perguntar se ela existiu.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==========================================
+                 CARD: Transaction (center-right)
+                 ========================================== -->
+            <div class="entity-card accent-orange" style="left: 1200px; top: 300px;" id="card-transaction">
+                <div class="card-header">
+                    <div class="card-icon">&#8644;</div>
+                    <div class="card-header-text">
+                        <h3>Transaction</h3>
+                        <p>Transferencia PIX</p>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="field-row">
+                        <span class="field-name">id</span>
+                        <div class="field-badges"><span class="field-badge badge-pk">PK</span></div>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">endToEndId</span>
+                        <div class="field-badges"><span class="field-badge badge-unique">UNQ</span></div>
+                        <span class="info-icon">i</span>
+                        <div class="tooltip">Identificador unico no ecossistema PIX inteiro. Formato BACEN: E + ISPB + data + sequencial. E o "recibo" do PIX.</div>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">amount</span>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">description</span>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">senderAccountId</span>
+                        <div class="field-badges"><span class="field-badge badge-fk">FK</span></div>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">receiverAccountId</span>
+                        <div class="field-badges"><span class="field-badge badge-fk">FK</span></div>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">receiverPixKey</span>
+                        <span class="info-icon">i</span>
+                        <div class="tooltip">Salvo como texto (nao FK) porque a chave pode ser desativada depois, mas o historico da transacao precisa existir.</div>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">status</span>
+                        <div class="field-badges"><span class="field-badge badge-enum">ENUM</span></div>
+                        <span class="info-icon">i</span>
+                        <div class="tooltip">Maquina de estados: PENDING → PROCESSING → COMPLETED/FAILED. So COMPLETED pode virar REFUNDED (estorno).</div>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">idempotencyKey</span>
+                        <div class="field-badges"><span class="field-badge badge-unique">UNQ</span></div>
+                        <span class="info-icon">i</span>
+                        <div class="tooltip">Evita cobrar duas vezes se o cliente clica "Pagar" duas vezes por lag. Mesma chave = mesma transacao, retorna resultado anterior.</div>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">createdAt</span>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">processedAt</span>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">failureReason</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==========================================
+                 CARD: QrCode (bottom-center)
+                 ========================================== -->
+            <div class="entity-card accent-purple" style="left: 780px; top: 740px;" id="card-qrcode">
+                <div class="card-header">
+                    <div class="card-icon">&#9635;</div>
+                    <div class="card-header-text">
+                        <h3>QrCode</h3>
+                        <p>QR Code PIX</p>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="field-row">
+                        <span class="field-name">id</span>
+                        <div class="field-badges"><span class="field-badge badge-pk">PK</span></div>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">type</span>
+                        <div class="field-badges"><span class="field-badge badge-enum">ENUM</span></div>
+                        <span class="info-icon">i</span>
+                        <div class="tooltip">STATIC = lojinha aceita qualquer valor. DYNAMIC = cobranca especifica com valor fixo e vencimento.</div>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">pixKey</span>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">merchantName</span>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">merchantCity</span>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">amount</span>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">txId</span>
+                        <span class="info-icon">i</span>
+                        <div class="tooltip">Identificador da transacao vinculada ao QR. Obrigatorio para QR dinamico no padrao BRCode do BACEN.</div>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">description</span>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">expiresAt</span>
+                        <span class="info-icon">i</span>
+                        <div class="tooltip">QR dinamico tem prazo. Expirado = nao pode mais pagar. Igual boleto que vence.</div>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">payload</span>
+                        <span class="info-icon">i</span>
+                        <div class="tooltip">String EMV codificada no QR Code. Segue padrao BRCode do BACEN. E isso que o app do banco le ao escanear.</div>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">status</span>
+                        <div class="field-badges"><span class="field-badge badge-enum">ENUM</span></div>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">createdAt</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==========================================
+                 CARD: AuditLog (bottom-left)
+                 ========================================== -->
+            <div class="entity-card accent-red" style="left: 120px; top: 840px;" id="card-auditlog">
+                <div class="card-header">
+                    <div class="card-icon">&#128270;</div>
+                    <div class="card-header-text">
+                        <h3>AuditLog</h3>
+                        <p>Registro de auditoria</p>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="field-row">
+                        <span class="field-name">id</span>
+                        <div class="field-badges"><span class="field-badge badge-pk">PK</span></div>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">entityType</span>
+                        <span class="info-icon">i</span>
+                        <div class="tooltip tooltip-right">Polymorphic association — a mesma tabela audita Account, PixKey, Transaction e todas as outras entidades.</div>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">entityId</span>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">action</span>
+                        <div class="field-badges"><span class="field-badge badge-enum">ENUM</span></div>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">performedBy</span>
+                        <span class="info-icon">i</span>
+                        <div class="tooltip tooltip-right">Quem executou a operacao. Em caso de fraude, e isso que a investigacao usa junto com ipAddress.</div>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">oldValue</span>
+                        <div class="field-badges"><span class="field-badge badge-json">JSON</span></div>
+                        <span class="info-icon">i</span>
+                        <div class="tooltip tooltip-right">Snapshot JSON do estado ANTES da alteracao. Ex: {"status": "ACTIVE"}.</div>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">newValue</span>
+                        <div class="field-badges"><span class="field-badge badge-json">JSON</span></div>
+                        <span class="info-icon">i</span>
+                        <div class="tooltip tooltip-right">Snapshot JSON do estado DEPOIS da alteracao. Ex: {"status": "BLOCKED"}.</div>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">ipAddress</span>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">createdAt</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==========================================
+                 CARD: WebhookConfig (far-right)
+                 ========================================== -->
+            <div class="entity-card accent-lightblue" style="left: 1580px; top: 140px;" id="card-webhook">
+                <div class="card-header">
+                    <div class="card-icon">&#9889;</div>
+                    <div class="card-header-text">
+                        <h3>WebhookConfig</h3>
+                        <p>Notificacao para clientes</p>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="field-row">
+                        <span class="field-name">id</span>
+                        <div class="field-badges"><span class="field-badge badge-pk">PK</span></div>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">accountId</span>
+                        <div class="field-badges"><span class="field-badge badge-fk">FK</span></div>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">url</span>
+                        <span class="info-icon">i</span>
+                        <div class="tooltip">O endpoint do cliente que recebe notificacoes POST quando eventos acontecem (ex: transacao completada).</div>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">events</span>
+                        <span class="info-icon">i</span>
+                        <div class="tooltip">Lista de eventos que ativam o webhook. Ex: TRANSACTION_COMPLETED, KEY_REGISTERED.</div>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">secret</span>
+                        <span class="info-icon">i</span>
+                        <div class="tooltip">Usado para assinar o payload com HMAC. O cliente verifica que a notificacao e legitima e nao de um atacante.</div>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">status</span>
+                        <div class="field-badges"><span class="field-badge badge-enum">ENUM</span></div>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">createdAt</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==========================================
+                 ZONE: Fase 03 — Camada de Servico
+                 ========================================== -->
+            <div class="zone-label" style="left: 60px; top: 1160px;">Fase 03 — Camada de Servico</div>
+            <div class="zone-divider" style="left: 40px; top: 1200px; width: 1900px;"></div>
+
+            <!-- CARD SERVICE: AccountController -->
+            <div class="service-card accent-blue" style="left: 60px; top: 1240px;" id="card-controller">
+                <div class="card-header">
+                    <div class="card-icon">&#128268;</div>
+                    <div class="card-header-text">
+                        <h3>AccountController</h3>
+                        <p>Porta de entrada HTTP</p>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p>Recebe requisicoes REST e delega para o Service. Nao tem logica de negocio — e um garcom que leva o pedido para a cozinha.</p>
+                    <div>
+                        <span class="service-tag">POST /accounts</span>
+                        <span class="service-tag">GET /{id}</span>
+                        <span class="service-tag">PUT /{id}</span>
+                        <span class="service-tag">PATCH /block</span>
+                        <span class="service-tag">DELETE /{id}</span>
+                    </div>
+                    <span class="info-icon" style="margin-top:8px;">i</span>
+                    <div class="tooltip">7 endpoints REST. Usa @Valid para validar DTOs antes de chamar o Service. Retorna ResponseEntity com status HTTP correto (201, 200, 204).</div>
+                </div>
+            </div>
+
+            <!-- CARD SERVICE: DTOs -->
+            <div class="service-card accent-green" style="left: 400px; top: 1240px;" id="card-dtos">
+                <div class="card-header">
+                    <div class="card-icon">&#128230;</div>
+                    <div class="card-header-text">
+                        <h3>DTOs</h3>
+                        <p>Objetos de transferencia</p>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p>Separam o que o cliente envia/recebe da estrutura interna (Entity). Nunca expor a Entity diretamente na API.</p>
+                    <div>
+                        <span class="service-tag">CreateAccountRequest</span>
+                        <span class="service-tag">UpdateAccountRequest</span>
+                        <span class="service-tag">AccountResponse</span>
+                        <span class="service-tag">ErrorResponse</span>
+                    </div>
+                    <span class="info-icon" style="margin-top:8px;">i</span>
+                    <div class="tooltip">Request DTOs usam Bean Validation (@NotBlank, @Pattern). Response DTOs controlam quais campos o cliente ve. ErrorResponse padroniza TODAS as respostas de erro.</div>
+                </div>
+            </div>
+
+            <!-- CARD SERVICE: AccountService -->
+            <div class="service-card accent-orange" style="left: 740px; top: 1240px;" id="card-service">
+                <div class="card-header">
+                    <div class="card-icon">&#9881;</div>
+                    <div class="card-header-text">
+                        <h3>AccountService</h3>
+                        <p>Logica de negocio</p>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p>O cerebro da aplicacao. Valida regras, executa operacoes, audita e retorna DTOs. Padrao: VALIDAR → EXECUTAR → AUDITAR → RETORNAR.</p>
+                    <div>
+                        <span class="service-tag">createAccount</span>
+                        <span class="service-tag">getById</span>
+                        <span class="service-tag">updateAccount</span>
+                        <span class="service-tag">blockAccount</span>
+                        <span class="service-tag">deactivateAccount</span>
+                    </div>
+                    <span class="info-icon" style="margin-top:8px;">i</span>
+                    <div class="tooltip">@Transactional garante atomicidade: se falhar no meio, tudo desfaz. @Transactional(readOnly=true) nos GETs otimiza performance.</div>
+                </div>
+            </div>
+
+            <!-- CARD SERVICE: AccountMapper -->
+            <div class="service-card accent-purple" style="left: 1080px; top: 1240px;" id="card-mapper">
+                <div class="card-header">
+                    <div class="card-icon">&#128260;</div>
+                    <div class="card-header-text">
+                        <h3>AccountMapper</h3>
+                        <p>Tradutor DTO ↔ Entity</p>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p>Converte entre formatos: o que o cliente envia (DTO) vira o que o banco entende (Entity), e vice-versa.</p>
+                    <div>
+                        <span class="service-tag">toEntity()</span>
+                        <span class="service-tag">toResponse()</span>
+                        <span class="service-tag">Static methods</span>
+                    </div>
+                    <span class="info-icon" style="margin-top:8px;">i</span>
+                    <div class="tooltip">Metodos estaticos — nao precisa criar instancia. toEntity() preenche campos default (status ACTIVE, balance 0). toResponse() copia campos da Entity para o DTO.</div>
+                </div>
+            </div>
+
+            <!-- CARD SERVICE: DocumentValidator -->
+            <div class="service-card accent-lightblue" style="left: 1420px; top: 1240px;" id="card-validator">
+                <div class="card-header">
+                    <div class="card-icon">&#9989;</div>
+                    <div class="card-header-text">
+                        <h3>DocumentValidator</h3>
+                        <p>Validacao CPF/CNPJ</p>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p>Valida CPF e CNPJ pelo algoritmo de digitos verificadores (modulo 11). Rejeita documentos com todos os digitos iguais.</p>
+                    <div>
+                        <span class="service-tag">isValidCpf()</span>
+                        <span class="service-tag">isValidCnpj()</span>
+                        <span class="service-tag">Modulo 11</span>
+                    </div>
+                    <span class="info-icon" style="margin-top:8px;">i</span>
+                    <div class="tooltip">Mesma validacao que a Receita Federal usa. 111.111.111-11 e sintaticamente valido mas falha no digito verificador. Chamado pelo AccountService antes de criar conta.</div>
+                </div>
+            </div>
+
+            <!-- CARD SERVICE: GlobalExceptionHandler -->
+            <div class="service-card accent-red" style="left: 60px; top: 1460px;" id="card-exhandler">
+                <div class="card-header">
+                    <div class="card-icon">&#128721;</div>
+                    <div class="card-header-text">
+                        <h3>GlobalExceptionHandler</h3>
+                        <p>Tratamento central de erros</p>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p>Intercepta TODA excecao da API e converte em resposta JSON padronizada (ErrorResponse). O cliente nunca ve um stack trace.</p>
+                    <div>
+                        <span class="service-tag">BusinessException → 4xx</span>
+                        <span class="service-tag">Validation → 400</span>
+                        <span class="service-tag">Fallback → 500</span>
+                    </div>
+                    <span class="info-icon" style="margin-top:8px;">i</span>
+                    <div class="tooltip">@ControllerAdvice captura excecoes de TODOS os controllers. Logs: warn para 4xx (erro do cliente), error para 5xx (erro do servidor).</div>
+                </div>
+            </div>
+
+            <!-- CARD SERVICE: BusinessException -->
+            <div class="service-card accent-yellow" style="left: 400px; top: 1460px;" id="card-exceptions">
+                <div class="card-header">
+                    <div class="card-icon">&#9888;</div>
+                    <div class="card-header-text">
+                        <h3>BusinessException</h3>
+                        <p>Hierarquia de excecoes</p>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p>Classe base que todas as excecoes de negocio herdam. Contem httpStatus e errorCode. O Handler trata TODAS de uma vez.</p>
+                    <div>
+                        <span class="service-tag">ResourceNotFound 404</span>
+                        <span class="service-tag">AlreadyExists 409</span>
+                        <span class="service-tag">RuleViolation 422</span>
+                        <span class="service-tag">AccountBlocked 403</span>
+                        <span class="service-tag">InsufficientBalance 422</span>
+                    </div>
+                    <span class="info-icon" style="margin-top:8px;">i</span>
+                    <div class="tooltip">6 excecoes filhas. Cada uma define seu status HTTP. O Service lanca, o Handler captura e converte em ErrorResponse automaticamente.</div>
+                </div>
+            </div>
+
+            <!-- CARD SERVICE: AuditService -->
+            <div class="service-card accent-teal" style="left: 740px; top: 1460px;" id="card-auditservice">
+                <div class="card-header">
+                    <div class="card-icon">&#128270;</div>
+                    <div class="card-header-text">
+                        <h3>AuditService</h3>
+                        <p>Registro de auditoria</p>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p>Camera de seguranca do sistema: registra toda operacao de escrita no AuditLog. Nao bloqueia nada, so registra.</p>
+                    <div>
+                        <span class="service-tag">logCreate()</span>
+                        <span class="service-tag">logUpdate()</span>
+                        <span class="service-tag">logStatusChange()</span>
+                        <span class="service-tag">logDelete()</span>
+                    </div>
+                    <span class="info-icon" style="margin-top:8px;">i</span>
+                    <div class="tooltip">Usa ObjectMapper (Jackson) para serializar entidades em JSON nos campos oldValue/newValue. Se a serializacao falhar, usa toString() como fallback.</div>
+                </div>
+            </div>
+
+            <!-- CARD SERVICE: SecurityConfig -->
+            <div class="service-card accent-pink" style="left: 1080px; top: 1460px;" id="card-security">
+                <div class="card-header">
+                    <div class="card-icon">&#128274;</div>
+                    <div class="card-header-text">
+                        <h3>SecurityConfig</h3>
+                        <p>Configuracao de seguranca</p>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p>Cadeia de filtros HTTP. CSRF desabilitado (API stateless). /api/** liberado temporariamente ate implementar JWT.</p>
+                    <div>
+                        <span class="service-tag">STATELESS</span>
+                        <span class="service-tag">CSRF off</span>
+                        <span class="service-tag">permitAll /api/**</span>
+                    </div>
+                    <span class="info-icon" style="margin-top:8px;">i</span>
+                    <div class="tooltip">Toda request HTTP passa por esta cadeia de filtros ANTES de chegar no Controller. Na fase de JWT, /api/** vai exigir autenticacao.</div>
+                </div>
+            </div>
+
+        </div><!-- /canvas-world -->
+    </div><!-- /canvas-viewport -->
+
+    <!-- ==========================================
+         JAVASCRIPT — Canvas infinito (pan + zoom)
+         ========================================== -->
+    <script>
+        // ========================================
+        // Estado do canvas
+        // ========================================
+        const viewport = document.getElementById('viewport');
+        const world = document.getElementById('world');
+        const zoomDisplay = document.getElementById('zoomDisplay');
+        const minimapViewport = document.getElementById('minimapViewport');
+        const relSvg = document.getElementById('relSvg');
+
+        let scale = 1;
+        let panX = 0;
+        let panY = 0;
+        let isPanning = false;
+        let startX = 0;
+        let startY = 0;
+
+        // Mundo maior para caber infra + dominio
+        const WORLD_WIDTH = 2200;
+        const WORLD_HEIGHT = 1900;
+
+        // ========================================
+        // Aplicar transformacao
+        // ========================================
+        function applyTransform() {
+            world.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+            zoomDisplay.textContent = Math.round(scale * 100) + '%';
+            updateMinimap();
+        }
+
+        // ========================================
+        // Zoom
+        // ========================================
+        function zoomIn() {
+            const oldScale = scale;
+            scale = Math.min(scale * 1.15, 3);
+            const vw = viewport.clientWidth;
+            const vh = viewport.clientHeight;
+            const cx = vw / 2;
+            const cy = vh / 2;
+            panX = cx - (cx - panX) * (scale / oldScale);
+            panY = cy - (cy - panY) * (scale / oldScale);
+            applyTransform();
+        }
+
+        function zoomOut() {
+            const oldScale = scale;
+            scale = Math.max(scale / 1.15, 0.2);
+            const vw = viewport.clientWidth;
+            const vh = viewport.clientHeight;
+            const cx = vw / 2;
+            const cy = vh / 2;
+            panX = cx - (cx - panX) * (scale / oldScale);
+            panY = cy - (cy - panY) * (scale / oldScale);
+            applyTransform();
+        }
+
+        function resetView() {
+            const vw = viewport.clientWidth;
+            const vh = viewport.clientHeight;
+            scale = Math.min(vw / WORLD_WIDTH, vh / WORLD_HEIGHT) * 0.8;
+            panX = (vw - WORLD_WIDTH * scale) / 2;
+            panY = (vh - WORLD_HEIGHT * scale) / 2 + 50 * scale;
+            applyTransform();
+        }
+
+        // ========================================
+        // Mouse wheel zoom
+        // ========================================
+        viewport.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const oldScale = scale;
+            const delta = e.deltaY > 0 ? 0.92 : 1.08;
+            scale = Math.max(0.15, Math.min(3, scale * delta));
+            const rect = viewport.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            panX = mx - (mx - panX) * (scale / oldScale);
+            panY = my - (my - panY) * (scale / oldScale);
+            applyTransform();
+        }, { passive: false });
+
+        // ========================================
+        // Pan com mouse drag (no fundo) +
+        // Drag de cards (no header)
+        // ========================================
+        let isDraggingCard = false;
+        let dragCard = null;
+        let dragOffsetX = 0;
+        let dragOffsetY = 0;
+
+        viewport.addEventListener('mousedown', (e) => {
+            // Verificar se clicou no header de um card (para arrastar)
+            const header = e.target.closest('.card-header');
+            if (header) {
+                const card = header.closest('.entity-card, .infra-card, .service-card');
+                if (card) {
+                    isDraggingCard = true;
+                    dragCard = card;
+                    card.classList.add('dragging');
+
+                    // Posicao do mouse no mundo
+                    const rect = viewport.getBoundingClientRect();
+                    const worldMouseX = (e.clientX - rect.left - panX) / scale;
+                    const worldMouseY = (e.clientY - rect.top - panY) / scale;
+
+                    // Offset do mouse em relacao ao card
+                    dragOffsetX = worldMouseX - card.offsetLeft;
+                    dragOffsetY = worldMouseY - card.offsetTop;
+
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return;
+                }
+            }
+
+            // Se nao e card, e panning do canvas
+            const target = e.target;
+            if (target === viewport || target === world ||
+                target.tagName === 'svg' || target.tagName === 'line' ||
+                target.tagName === 'text' || target.classList.contains('zone-divider') ||
+                target.classList.contains('zone-label')) {
+                isPanning = true;
+                startX = e.clientX - panX;
+                startY = e.clientY - panY;
+                viewport.style.cursor = 'grabbing';
+            }
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (isDraggingCard && dragCard) {
+                const rect = viewport.getBoundingClientRect();
+                const worldMouseX = (e.clientX - rect.left - panX) / scale;
+                const worldMouseY = (e.clientY - rect.top - panY) / scale;
+
+                dragCard.style.left = (worldMouseX - dragOffsetX) + 'px';
+                dragCard.style.top = (worldMouseY - dragOffsetY) + 'px';
+
+                drawRelationships();
+                return;
+            }
+
+            if (isPanning) {
+                panX = e.clientX - startX;
+                panY = e.clientY - startY;
+                applyTransform();
+            }
+        });
+
+        window.addEventListener('mouseup', () => {
+            if (isDraggingCard && dragCard) {
+                dragCard.classList.remove('dragging');
+                isDraggingCard = false;
+                dragCard = null;
+            }
+            isPanning = false;
+            viewport.style.cursor = 'grab';
+        });
+
+        // ========================================
+        // Linhas de relacionamento dinamicas
+        // Recalculam quando cards se movem
+        // ========================================
+        function getCardCenter(id) {
+            const el = document.getElementById(id);
+            if (!el) return { x: 0, y: 0 };
+            const l = el.offsetLeft;
+            const t = el.offsetTop;
+            const w = el.offsetWidth;
+            const h = el.offsetHeight;
+            return { x: l + w / 2, y: t + h / 2, l, t, w, h };
+        }
+
+        function getCardEdge(fromId, toId) {
+            // Calcula ponto na borda do card "to" mais proximo do "from"
+            const from = getCardCenter(fromId);
+            const to = getCardCenter(toId);
+            const dx = from.x - to.x;
+            const dy = from.y - to.y;
+            const angle = Math.atan2(dy, dx);
+
+            // Ponto na borda do retangulo "to"
+            const hw = to.w / 2;
+            const hh = to.h / 2;
+            const absCos = Math.abs(Math.cos(angle));
+            const absSin = Math.abs(Math.sin(angle));
+            let ex, ey;
+            if (hw * absSin <= hh * absCos) {
+                ex = Math.sign(Math.cos(angle)) * hw;
+                ey = ex * Math.tan(angle);
+            } else {
+                ey = Math.sign(Math.sin(angle)) * hh;
+                ex = ey / Math.tan(angle);
+            }
+            return { x: to.x + ex, y: to.y + ey };
+        }
+
+        function getCardEdgeFrom(fromId, toId) {
+            const from = getCardCenter(fromId);
+            const to = getCardCenter(toId);
+            const dx = to.x - from.x;
+            const dy = to.y - from.y;
+            const angle = Math.atan2(dy, dx);
+            const hw = from.w / 2;
+            const hh = from.h / 2;
+            const absCos = Math.abs(Math.cos(angle));
+            const absSin = Math.abs(Math.sin(angle));
+            let ex, ey;
+            if (hw * absSin <= hh * absCos) {
+                ex = Math.sign(Math.cos(angle)) * hw;
+                ey = ex * Math.tan(angle);
+            } else {
+                ey = Math.sign(Math.sin(angle)) * hh;
+                ex = ey / Math.tan(angle);
+            }
+            return { x: from.x + ex, y: from.y + ey };
+        }
+
+        function drawRelationships() {
+            // Limpar linhas existentes (manter defs)
+            const defs = relSvg.querySelector('defs');
+            relSvg.innerHTML = '';
+            relSvg.appendChild(defs);
+
+            // Definir relacionamentos
+            const fkRelations = [
+                { from: 'card-pixkey', to: 'card-account', label: 'N:1' },
+                { from: 'card-transaction', to: 'card-account', label: 'N:1 (sender)' },
+                { from: 'card-webhook', to: 'card-account', label: 'N:1' },
+            ];
+
+            // FK lines
+            fkRelations.forEach(rel => {
+                const start = getCardEdgeFrom(rel.from, rel.to);
+                const end = getCardEdge(rel.from, rel.to);
+                const midX = (start.x + end.x) / 2;
+                const midY = (start.y + end.y) / 2;
+
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', start.x);
+                line.setAttribute('y1', start.y);
+                line.setAttribute('x2', end.x);
+                line.setAttribute('y2', end.y);
+                line.setAttribute('class', 'rel-line rel-line-fk');
+                line.setAttribute('marker-end', 'url(#arrowhead)');
+                relSvg.appendChild(line);
+
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', midX);
+                text.setAttribute('y', midY - 6);
+                text.setAttribute('class', 'rel-label');
+                text.setAttribute('text-anchor', 'middle');
+                text.textContent = rel.label;
+                relSvg.appendChild(text);
+            });
+
+            // Audit dashed lines (AuditLog → todos)
+            const auditTargets = ['card-account', 'card-pixkey', 'card-transaction', 'card-qrcode', 'card-webhook'];
+            auditTargets.forEach(targetId => {
+                const start = getCardEdgeFrom('card-auditlog', targetId);
+                const end = getCardEdge('card-auditlog', targetId);
+
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', start.x);
+                line.setAttribute('y1', start.y);
+                line.setAttribute('x2', end.x);
+                line.setAttribute('y2', end.y);
+                line.setAttribute('class', 'rel-line rel-line-audit');
+                line.setAttribute('marker-end', 'url(#arrowhead-dashed)');
+                relSvg.appendChild(line);
+            });
+
+            // Label "audita tudo"
+            const auditCenter = getCardCenter('card-auditlog');
+            const auditText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            auditText.setAttribute('x', auditCenter.x);
+            auditText.setAttribute('y', auditCenter.t - 10);
+            auditText.setAttribute('class', 'rel-label');
+            auditText.setAttribute('text-anchor', 'middle');
+            auditText.setAttribute('style', 'font-size:10px;opacity:0.6;');
+            auditText.textContent = 'audita tudo';
+            relSvg.appendChild(auditText);
+
+            // Infra → Dominio lines (Flyway → PostgreSQL, Spring Boot → entidades)
+            const infraRelations = [
+                { from: 'card-flyway', to: 'card-postgres', label: 'migrations' },
+                { from: 'card-docker', to: 'card-postgres', label: '' },
+                { from: 'card-docker', to: 'card-kafka', label: '' },
+            ];
+
+            infraRelations.forEach(rel => {
+                const start = getCardEdgeFrom(rel.from, rel.to);
+                const end = getCardEdge(rel.from, rel.to);
+
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', start.x);
+                line.setAttribute('y1', start.y);
+                line.setAttribute('x2', end.x);
+                line.setAttribute('y2', end.y);
+                line.setAttribute('class', 'rel-line');
+                line.setAttribute('stroke', '#30363d');
+                line.setAttribute('stroke-dasharray', '4 4');
+                line.setAttribute('marker-end', 'url(#arrowhead-infra)');
+                relSvg.appendChild(line);
+
+                if (rel.label) {
+                    const midX = (start.x + end.x) / 2;
+                    const midY = (start.y + end.y) / 2;
+                    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    text.setAttribute('x', midX);
+                    text.setAttribute('y', midY - 6);
+                    text.setAttribute('class', 'rel-label');
+                    text.setAttribute('text-anchor', 'middle');
+                    text.setAttribute('style', 'font-size:10px;fill:#30363d;');
+                    text.textContent = rel.label;
+                    relSvg.appendChild(text);
+                }
+            });
+
+            // ========================================
+            // Fase 03 — Camada de Servico relationships
+            // ========================================
+
+            // Fluxo principal: Controller → Service → Account (Repository)
+            const serviceRelations = [
+                { from: 'card-controller', to: 'card-service', label: 'delega' },
+                { from: 'card-service', to: 'card-account', label: 'usa Repository' },
+                { from: 'card-service', to: 'card-auditservice', label: 'audita' },
+                { from: 'card-service', to: 'card-mapper', label: 'converte' },
+                { from: 'card-service', to: 'card-validator', label: 'valida CPF' },
+                { from: 'card-controller', to: 'card-dtos', label: 'recebe/retorna' },
+                { from: 'card-exceptions', to: 'card-exhandler', label: 'capturada por' },
+                { from: 'card-auditservice', to: 'card-auditlog', label: 'salva em' },
+                { from: 'card-security', to: 'card-controller', label: 'filtra antes' },
+            ];
+
+            serviceRelations.forEach(rel => {
+                const start = getCardEdgeFrom(rel.from, rel.to);
+                const end = getCardEdge(rel.from, rel.to);
+                const midX = (start.x + end.x) / 2;
+                const midY = (start.y + end.y) / 2;
+
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', start.x);
+                line.setAttribute('y1', start.y);
+                line.setAttribute('x2', end.x);
+                line.setAttribute('y2', end.y);
+                line.setAttribute('class', 'rel-line rel-line-fk');
+                line.setAttribute('marker-end', 'url(#arrowhead)');
+                relSvg.appendChild(line);
+
+                if (rel.label) {
+                    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    text.setAttribute('x', midX);
+                    text.setAttribute('y', midY - 6);
+                    text.setAttribute('class', 'rel-label');
+                    text.setAttribute('text-anchor', 'middle');
+                    text.textContent = rel.label;
+                    relSvg.appendChild(text);
+                }
+            });
+        }
+
+        // ========================================
+        // Minimap
+        // ========================================
+        function updateMinimap() {
+            const minimapW = 200;
+            const minimapH = 140;
+            const vw = viewport.clientWidth;
+            const vh = viewport.clientHeight;
+
+            const worldViewX = -panX / scale;
+            const worldViewY = -panY / scale;
+            const worldViewW = vw / scale;
+            const worldViewH = vh / scale;
+
+            const scaleX = minimapW / WORLD_WIDTH;
+            const scaleY = minimapH / WORLD_HEIGHT;
+            const ms = Math.min(scaleX, scaleY) * 0.85;
+
+            const offsetX = (minimapW - WORLD_WIDTH * ms) / 2;
+            const offsetY = (minimapH - WORLD_HEIGHT * ms) / 2;
+
+            const mvX = offsetX + worldViewX * ms;
+            const mvY = offsetY + worldViewY * ms;
+            const mvW = worldViewW * ms;
+            const mvH = worldViewH * ms;
+
+            minimapViewport.style.left = Math.max(0, mvX) + 'px';
+            minimapViewport.style.top = Math.max(0, mvY) + 'px';
+            minimapViewport.style.width = Math.min(mvW, minimapW) + 'px';
+            minimapViewport.style.height = Math.min(mvH, minimapH) + 'px';
+        }
+
+        // ========================================
+        // Inicializar
+        // ========================================
+        drawRelationships();
+        resetView();
+
+        // ========================================
+        // Tooltip global
+        // ========================================
+        const globalTooltip = document.getElementById('globalTooltip');
+        let tooltipTimeout = null;
+
+        document.querySelectorAll('.info-icon').forEach(icon => {
+            const tooltipDiv = icon.nextElementSibling;
+            if (!tooltipDiv || !tooltipDiv.classList.contains('tooltip')) return;
+            const text = tooltipDiv.textContent.trim();
+
+            icon.addEventListener('mouseenter', (e) => {
+                clearTimeout(tooltipTimeout);
+                globalTooltip.textContent = text;
+
+                const rect = icon.getBoundingClientRect();
+                const tipW = 300;
+                const tipH = globalTooltip.offsetHeight || 60;
+
+                let left = rect.left - tipW - 16;
+                let arrowClass = 'arrow-right';
+
+                if (left < 10) {
+                    left = rect.right + 16;
+                    arrowClass = 'arrow-left';
+                }
+
+                if (left + tipW > window.innerWidth - 10) {
+                    left = rect.left - tipW - 16;
+                    arrowClass = 'arrow-right';
+                }
+
+                let top = rect.top + rect.height / 2 - tipH / 2;
+                top = Math.max(64, Math.min(top, window.innerHeight - tipH - 10));
+
+                globalTooltip.style.left = left + 'px';
+                globalTooltip.style.top = top + 'px';
+                globalTooltip.style.maxWidth = tipW + 'px';
+                globalTooltip.className = 'visible ' + arrowClass;
+            });
+
+            icon.addEventListener('mouseleave', () => {
+                tooltipTimeout = setTimeout(() => {
+                    globalTooltip.className = '';
+                }, 100);
+            });
+        });
+
+        globalTooltip.addEventListener('mouseenter', () => {
+            clearTimeout(tooltipTimeout);
+        });
+        globalTooltip.addEventListener('mouseleave', () => {
+            globalTooltip.className = '';
+        });
+    </script>
+</body>
+</html>
