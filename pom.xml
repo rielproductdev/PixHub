@@ -37,6 +37,7 @@
         <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
         <springdoc.version>2.5.0</springdoc.version>
         <jjwt.version>0.12.5</jjwt.version>
+        <bucket4j.version>8.10.1</bucket4j.version>
         <testcontainers.version>1.19.7</testcontainers.version>
     </properties>
 
@@ -238,6 +239,26 @@
             <artifactId>jjwt-jackson</artifactId>
             <version>${jjwt.version}</version>
             <scope>runtime</scope>
+        </dependency>
+
+        <!-- ==================== RATE LIMITING ==================== -->
+
+        <!--
+            bucket4j-core:
+            Implementação do algoritmo "Token Bucket" para rate limiting.
+            Token Bucket funciona assim:
+            - Cada usuário/IP tem um "balde" com N tokens
+            - Cada request consome 1 token
+            - Tokens são reabastecidos automaticamente ao longo do tempo
+            - Quando o balde esvazia → 429 Too Many Requests
+            Exemplo: balde com 5 tokens, reabastece 5 por minuto.
+            Se o usuário faz 5 requests em 1 segundo, o balde esvazia.
+            Precisa esperar o reabastecimento para fazer mais requests.
+        -->
+        <dependency>
+            <groupId>com.bucket4j</groupId>
+            <artifactId>bucket4j-core</artifactId>
+            <version>${bucket4j.version}</version>
         </dependency>
 
         <!-- ==================== TESTES ==================== -->

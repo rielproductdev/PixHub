@@ -1,5 +1,6 @@
 package com.riel.pixhub.entity;
 
+import com.riel.pixhub.config.EncryptedStringConverter;
 import com.riel.pixhub.enums.PixKeyStatus;
 import com.riel.pixhub.enums.PixKeyType;
 import jakarta.persistence.*;
@@ -52,10 +53,19 @@ public class PixKey extends BaseEntity {
      * Ex: "12345678901" (CPF), "fulano@email.com", "+5581999999999", UUID aleatório.
      *
      * UNIQUE constraint garante unicidade no banco inteiro.
-     * length = 77: maior chave possível é e-mail (até 77 caracteres no padrão BACEN).
+     *
+     * @Convert: criptografa automaticamente com AES-256-GCM antes de salvar no banco.
+     * No banco fica ciphertext em Base64, no Java fica texto puro.
+     * length = 255: espaço para o dado criptografado (IV + ciphertext + authTag em Base64).
+     *
+     * ATENÇÃO: com criptografia, a UNIQUE constraint no banco compara o ciphertext,
+     * não o texto original. Como cada criptografia gera IV aleatório, dois valores
+     * iguais produzem ciphertexts diferentes. A unicidade deve ser validada no Service
+     * (descriptografando e comparando), não mais pelo banco.
      */
     @NotBlank(message = "Valor da chave é obrigatório")
-    @Column(name = "key_value", nullable = false, length = 77, unique = true)
+    @Column(name = "key_value", nullable = false, length = 255, unique = true)
+    @Convert(converter = EncryptedStringConverter.class)
     private String keyValue;
 
     /**

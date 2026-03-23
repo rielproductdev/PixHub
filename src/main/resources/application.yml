@@ -68,6 +68,55 @@ management:
 # ============================================================
 # SpringDoc/Swagger — Documentação automática da API
 # ============================================================
+# ============================================================
+# JWT — Configuração de tokens de autenticação
+# ============================================================
+# Valores padrão para todos os profiles. Em produção, a secret
+# DEVE ser sobrescrita via variável de ambiente (NUNCA usar a padrão).
+jwt:
+  # Chave secreta usada para assinar os tokens JWT.
+  # HMAC-SHA256 exige mínimo 256 bits (32 bytes).
+  # Em produção: JWT_SECRET=<chave aleatória de 64+ caracteres>
+  secret: ${JWT_SECRET:default-dev-secret-que-deve-ser-trocada-em-producao-min-256-bits!!}
+  # Tempo de vida do access token em milissegundos.
+  # 15 minutos = 900000ms — curto o suficiente para limitar danos se o token vazar.
+  access-token-expiration: 900000
+  # Tempo de vida do refresh token em milissegundos.
+  # 7 dias = 604800000ms — o usuário não precisa fazer login toda hora.
+  refresh-token-expiration: 604800000
+
+# ============================================================
+# Encryption — Criptografia de dados sensíveis (AES-256-GCM)
+# ============================================================
+# Protege CPF/CNPJ e chaves PIX armazenados no banco de dados.
+# Mesmo que o banco seja comprometido (SQL injection, backup vazado),
+# os dados ficam ilegíveis sem a chave de criptografia.
+#
+# A chave DEVE ser substituída em produção via variável de ambiente:
+#   ENCRYPTION_KEY=<resultado de: openssl rand -base64 32>
+#
+# IMPORTANTE: se a chave for alterada após dados serem salvos,
+# os dados antigos ficam irrecuperáveis (não há migração automática).
+encryption:
+  key: ${ENCRYPTION_KEY:dGhpc0lzQURldktleUZvclRlc3RpbmdPbmx5MTIzNDU=}
+
+# ============================================================
+# Rate Limiting — Controle de requisições por minuto
+# ============================================================
+# Protege a API contra abuso e brute force.
+# Cada tipo de endpoint tem um limite diferente baseado no risco:
+# - Auth (login): apertado → impede brute force de senhas
+# - Transações: moderado → operações financeiras são caras
+# - Consultas: relaxado → leitura é barata
+rate-limit:
+  enabled: true
+  # Endpoints de auth (/api/v1/auth/**) — limite por IP
+  auth-requests-per-minute: 5
+  # Endpoints de transação (POST/PUT /api/v1/transactions/**) — limite por usuário
+  transaction-requests-per-minute: 30
+  # Endpoints de consulta (GET /api/v1/**) — limite por usuário
+  query-requests-per-minute: 60
+
 springdoc:
   api-docs:
     # Endpoint que retorna o JSON da especificação OpenAPI.

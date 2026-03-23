@@ -1,5 +1,6 @@
 package com.riel.pixhub.dto.account;
 
+import com.riel.pixhub.validation.NoHtml;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -44,5 +45,6 @@ public class UpdateAccountRequest {
      * precisa ter entre 2 e 120 caracteres.
      */
     @Size(min = 2, max = 120, message = "Nome deve ter entre 2 e 120 caracteres")
+    @NoHtml
     private String holderName;
 }

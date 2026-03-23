@@ -1,6 +1,7 @@
 package com.riel.pixhub.dto.account;
 
 import com.riel.pixhub.enums.AccountType;
+import com.riel.pixhub.validation.NoHtml;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -50,6 +51,7 @@ public class CreateAccountRequest {
      */
     @NotBlank(message = "Nome do titular é obrigatório")
     @Size(min = 2, max = 120, message = "Nome deve ter entre 2 e 120 caracteres")
+    @NoHtml
     private String holderName;
 
     /**

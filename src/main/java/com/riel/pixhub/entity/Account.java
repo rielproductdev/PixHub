@@ -1,5 +1,6 @@
 package com.riel.pixhub.entity;
 
+import com.riel.pixhub.config.EncryptedStringConverter;
 import com.riel.pixhub.enums.AccountStatus;
 import com.riel.pixhub.enums.AccountType;
 import jakarta.persistence.*;
@@ -49,9 +50,15 @@ public class Account extends BaseEntity {
      * Armazenamos só os dígitos, sem formatação (pontos, traços, barras).
      * A validação de dígitos verificadores será feita no Service.
      * Este campo determina se a conta é PF ou PJ (afeta limite de chaves PIX).
+     *
+     * @Convert: criptografa automaticamente com AES-256-GCM antes de salvar no banco.
+     * No banco fica "dGhpcyBpcyBh..." (Base64), no Java fica "12345678901" (texto puro).
+     * Transparente para o restante da aplicação — Service e Controller não sabem
+     * que o dado é criptografado. O JPA cuida de tudo via AttributeConverter.
      */
     @NotBlank(message = "Documento do titular é obrigatório")
-    @Column(name = "holder_document", nullable = false, length = 14)
+    @Column(name = "holder_document", nullable = false, length = 255)
+    @Convert(converter = EncryptedStringConverter.class)
     private String holderDocument;
 
     /**

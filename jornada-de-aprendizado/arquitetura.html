@@ -141,7 +141,7 @@
             top: 0;
             left: 0;
             width: 4000px;
-            height: 3000px;
+            height: 4000px;
             pointer-events: none;
         }
 
@@ -297,6 +297,12 @@
             background-color: rgba(248, 81, 73, 0.15);
             color: #f85149;
             border: 1px solid rgba(248, 81, 73, 0.3);
+        }
+
+        .badge-enc {
+            background-color: rgba(227, 179, 65, 0.15);
+            color: #e3b341;
+            border: 1px solid rgba(227, 179, 65, 0.3);
         }
 
         /* ========================================
@@ -659,7 +665,7 @@
             <a href="index.html">&larr; Voltar para Jornada</a>
             <div class="header-title">
                 <h1>Mapa da Arquitetura — PixHub</h1>
-                <p>Relacionamentos entre entidades do dominio</p>
+                <p>Infra, dominio, servicos e seguranca</p>
             </div>
         </div>
         <div class="header-controls">
@@ -700,7 +706,7 @@
             WebhookConfig
         </div>
         <div class="legend-divider"></div>
-        <h4 style="margin-top:4px;">Camada de Servico (Fase 03)</h4>
+        <h4 style="margin-top:4px;">Camada de Servico</h4>
         <div class="legend-item">
             <div class="legend-color" style="background-color: #58a6ff;"></div>
             Controller
@@ -715,11 +721,29 @@
         </div>
         <div class="legend-item">
             <div class="legend-color" style="background-color: #a371f7;"></div>
-            Mapper
+            Mapper / JWT
         </div>
         <div class="legend-item">
             <div class="legend-color" style="background-color: #f85149;"></div>
-            Exception Handler
+            Filter / Exception
+        </div>
+        <div class="legend-divider"></div>
+        <h4 style="margin-top:4px;">Seguranca (Fase 03)</h4>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #e3b341;"></div>
+            User / Rate Limit
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #79c0ff;"></div>
+            Encryption
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #2dd4bf;"></div>
+            Security Logger
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #db61a2;"></div>
+            XSS / Config
         </div>
         <div class="legend-divider"></div>
         <h4 style="margin-top:4px;">Infraestrutura (Fase 01)</h4>
@@ -765,6 +789,10 @@
             <span class="legend-badge-demo badge-unique" style="font-size:9px;padding:1px 5px;border-radius:4px;">UNQ</span>
             Indice unico
         </div>
+        <div class="legend-item">
+            <span class="legend-badge-demo badge-enc" style="font-size:9px;padding:1px 5px;border-radius:4px;">ENC</span>
+            Criptografado (AES-256)
+        </div>
         <div class="legend-divider"></div>
         <div class="legend-item">
             <div style="width:16px;height:16px;border-radius:50%;background:#30363d;display:flex;align-items:center;justify-content:center;font-size:10px;font-style:italic;font-family:serif;font-weight:700;color:#8b949e;flex-shrink:0;">i</div>
@@ -790,16 +818,28 @@
             <div class="minimap-dot" style="left:40%;top:62%;width:22px;height:18px;background-color:rgba(163,113,247,0.5);"></div>
             <div class="minimap-dot" style="left:8%;top:68%;width:22px;height:16px;background-color:rgba(248,81,73,0.5);"></div>
             <div class="minimap-dot" style="left:78%;top:22%;width:22px;height:14px;background-color:rgba(121,192,255,0.5);"></div>
-            <!-- Fase 03 dots -->
-            <div class="minimap-dot" style="left:5%;top:78%;width:18px;height:8px;background-color:rgba(88,166,255,0.4);"></div>
-            <div class="minimap-dot" style="left:20%;top:78%;width:18px;height:8px;background-color:rgba(63,185,80,0.4);"></div>
-            <div class="minimap-dot" style="left:38%;top:78%;width:18px;height:8px;background-color:rgba(240,136,62,0.4);"></div>
-            <div class="minimap-dot" style="left:55%;top:78%;width:18px;height:8px;background-color:rgba(163,113,247,0.4);"></div>
-            <div class="minimap-dot" style="left:72%;top:78%;width:18px;height:8px;background-color:rgba(121,192,255,0.4);"></div>
-            <div class="minimap-dot" style="left:5%;top:88%;width:18px;height:8px;background-color:rgba(248,81,73,0.4);"></div>
-            <div class="minimap-dot" style="left:20%;top:88%;width:18px;height:8px;background-color:rgba(227,179,65,0.4);"></div>
-            <div class="minimap-dot" style="left:38%;top:88%;width:18px;height:8px;background-color:rgba(45,212,191,0.4);"></div>
-            <div class="minimap-dot" style="left:55%;top:88%;width:18px;height:8px;background-color:rgba(219,97,162,0.4);"></div>
+            <!-- Fase 03 Service dots -->
+            <div class="minimap-dot" style="left:5%;top:62%;width:16px;height:7px;background-color:rgba(88,166,255,0.4);"></div>
+            <div class="minimap-dot" style="left:18%;top:62%;width:16px;height:7px;background-color:rgba(63,185,80,0.4);"></div>
+            <div class="minimap-dot" style="left:34%;top:62%;width:16px;height:7px;background-color:rgba(240,136,62,0.4);"></div>
+            <div class="minimap-dot" style="left:50%;top:62%;width:16px;height:7px;background-color:rgba(163,113,247,0.4);"></div>
+            <div class="minimap-dot" style="left:66%;top:62%;width:16px;height:7px;background-color:rgba(121,192,255,0.4);"></div>
+            <div class="minimap-dot" style="left:5%;top:70%;width:16px;height:7px;background-color:rgba(248,81,73,0.4);"></div>
+            <div class="minimap-dot" style="left:18%;top:70%;width:16px;height:7px;background-color:rgba(227,179,65,0.4);"></div>
+            <div class="minimap-dot" style="left:34%;top:70%;width:16px;height:7px;background-color:rgba(45,212,191,0.4);"></div>
+            <div class="minimap-dot" style="left:50%;top:70%;width:16px;height:7px;background-color:rgba(219,97,162,0.4);"></div>
+            <!-- User entity dot -->
+            <div class="minimap-dot" style="left:78%;top:35%;width:18px;height:14px;background-color:rgba(227,179,65,0.5);"></div>
+            <!-- Fase 03 Security dots -->
+            <div class="minimap-dot" style="left:5%;top:80%;width:16px;height:7px;background-color:rgba(88,166,255,0.4);"></div>
+            <div class="minimap-dot" style="left:18%;top:80%;width:16px;height:7px;background-color:rgba(63,185,80,0.4);"></div>
+            <div class="minimap-dot" style="left:34%;top:80%;width:16px;height:7px;background-color:rgba(240,136,62,0.4);"></div>
+            <div class="minimap-dot" style="left:50%;top:80%;width:16px;height:7px;background-color:rgba(163,113,247,0.4);"></div>
+            <div class="minimap-dot" style="left:5%;top:88%;width:16px;height:7px;background-color:rgba(248,81,73,0.4);"></div>
+            <div class="minimap-dot" style="left:18%;top:88%;width:16px;height:7px;background-color:rgba(227,179,65,0.4);"></div>
+            <div class="minimap-dot" style="left:34%;top:88%;width:16px;height:7px;background-color:rgba(45,212,191,0.4);"></div>
+            <div class="minimap-dot" style="left:50%;top:88%;width:16px;height:7px;background-color:rgba(121,192,255,0.4);"></div>
+            <div class="minimap-dot" style="left:66%;top:88%;width:16px;height:7px;background-color:rgba(219,97,162,0.4);"></div>
             <div class="minimap-viewport" id="minimapViewport"></div>
             <div class="minimap-label">minimap</div>
         </div>
@@ -932,7 +972,7 @@
                 <div class="card-body">
                     <p>Controla versao do schema do banco. Migrations V1, V2... executam em ordem. Nunca alterar uma ja executada.</p>
                     <div>
-                        <span class="infra-tag">V1..V7</span>
+                        <span class="infra-tag">V1..V9</span>
                         <span class="infra-tag">Versionado</span>
                         <span class="infra-tag">Imutavel</span>
                     </div>
@@ -970,8 +1010,9 @@
                     </div>
                     <div class="field-row">
                         <span class="field-name">holderDocument</span>
+                        <div class="field-badges"><span class="field-badge badge-enc">ENC</span></div>
                         <span class="info-icon">i</span>
-                        <div class="tooltip tooltip-right">CPF ou CNPJ do titular. A validacao de digitos verificadores e obrigatoria. Define se a conta e PF ou PJ.</div>
+                        <div class="tooltip tooltip-right">CPF ou CNPJ do titular. Criptografado com AES-256-GCM no banco (Fase 03). A validacao de digitos verificadores e obrigatoria. Define se a conta e PF ou PJ.</div>
                     </div>
                     <div class="field-row">
                         <span class="field-name">bankCode</span>
@@ -1026,9 +1067,9 @@
                     </div>
                     <div class="field-row">
                         <span class="field-name">keyValue</span>
-                        <div class="field-badges"><span class="field-badge badge-unique">UNQ</span></div>
+                        <div class="field-badges"><span class="field-badge badge-unique">UNQ</span><span class="field-badge badge-enc">ENC</span></div>
                         <span class="info-icon">i</span>
-                        <div class="tooltip">UNIQUE — uma chave PIX e unica no Brasil inteiro. O indice no banco garante isso mesmo que o codigo tenha bug.</div>
+                        <div class="tooltip">UNIQUE — uma chave PIX e unica no Brasil inteiro. Criptografado com AES-256-GCM no banco (Fase 03). Com IV aleatorio, a UNIQUE constraint compara ciphertext — unicidade deve ser validada no Service.</div>
                     </div>
                     <div class="field-row">
                         <span class="field-name">accountId</span>
@@ -1280,7 +1321,7 @@
             <!-- ==========================================
                  ZONE: Fase 03 — Camada de Servico
                  ========================================== -->
-            <div class="zone-label" style="left: 60px; top: 1160px;">Fase 03 — Camada de Servico</div>
+            <div class="zone-label" style="left: 60px; top: 1160px;">Camada de Servico (Account)</div>
             <div class="zone-divider" style="left: 40px; top: 1200px; width: 1900px;"></div>
 
             <!-- CARD SERVICE: AccountController -->
@@ -1465,18 +1506,283 @@
                     <div class="card-icon">&#128274;</div>
                     <div class="card-header-text">
                         <h3>SecurityConfig</h3>
-                        <p>Configuracao de seguranca</p>
+                        <p>Cadeia de filtros completa</p>
                     </div>
                 </div>
                 <div class="card-body">
-                    <p>Cadeia de filtros HTTP. CSRF desabilitado (API stateless). /api/** liberado temporariamente ate implementar JWT.</p>
+                    <p>Orquestra toda a seguranca HTTP: JWT filter, rate limiting, CORS, security headers e CSP. API 100% stateless.</p>
                     <div>
-                        <span class="service-tag">STATELESS</span>
-                        <span class="service-tag">CSRF off</span>
-                        <span class="service-tag">permitAll /api/**</span>
+                        <span class="service-tag">JwtFilter → RateLimit → Auth</span>
+                        <span class="service-tag">CORS (5173/4173/3000)</span>
+                        <span class="service-tag">Security Headers + CSP</span>
+                        <span class="service-tag">BCrypt PasswordEncoder</span>
                     </div>
                     <span class="info-icon" style="margin-top:8px;">i</span>
-                    <div class="tooltip">Toda request HTTP passa por esta cadeia de filtros ANTES de chegar no Controller. Na fase de JWT, /api/** vai exigir autenticacao.</div>
+                    <div class="tooltip">Toda request passa por: CORS → CSRF(off) → JwtFilter → RateLimitFilter → Authorization. /auth/** e publico, o resto exige JWT. Headers: nosniff, DENY, no-store, CSP.</div>
+                </div>
+            </div>
+
+            <!-- ==========================================
+                 CARD: User (Fase 03 — Entity de autenticacao)
+                 Na zona de Dominio porque e uma Entity JPA
+                 ========================================== -->
+            <div class="entity-card accent-yellow" style="left: 1580px; top: 560px;" id="card-user">
+                <div class="card-header">
+                    <div class="card-icon">&#128100;</div>
+                    <div class="card-header-text">
+                        <h3>User</h3>
+                        <p>Usuario de autenticacao</p>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="field-row">
+                        <span class="field-name">id</span>
+                        <div class="field-badges"><span class="field-badge badge-pk">PK</span></div>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">fullName</span>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">email</span>
+                        <div class="field-badges"><span class="field-badge badge-unique">UNQ</span></div>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">password</span>
+                        <span class="info-icon">i</span>
+                        <div class="tooltip">Hash BCrypt da senha — NUNCA texto puro. BCrypt inclui salt automatico. Resultado: "$2a$10$xK..."</div>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">role</span>
+                        <div class="field-badges"><span class="field-badge badge-enum">ENUM</span></div>
+                        <span class="info-icon">i</span>
+                        <div class="tooltip">USER ou ADMIN. Define permissoes no @PreAuthorize. Default: USER.</div>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">status</span>
+                        <div class="field-badges"><span class="field-badge badge-enum">ENUM</span></div>
+                        <span class="info-icon">i</span>
+                        <div class="tooltip">ACTIVE ou LOCKED. Bloqueado apos 5 tentativas falhas de login (brute force protection). Desbloqueia apos 30 min.</div>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">failedLoginAttempts</span>
+                        <span class="info-icon">i</span>
+                        <div class="tooltip">Contador de tentativas falhas. Reseta ao fazer login com sucesso. Ao atingir 5, muda status para LOCKED.</div>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">lockedUntil</span>
+                        <span class="info-icon">i</span>
+                        <div class="tooltip">Timestamp ate quando a conta esta bloqueada. NULL = conta ativa. Desbloqueio automatico quando LocalDateTime.now() ultrapassa.</div>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">accountId</span>
+                        <div class="field-badges"><span class="field-badge badge-fk">FK</span></div>
+                        <span class="info-icon">i</span>
+                        <div class="tooltip">FK nullable para Account. Um usuario pode ter 0 ou 1 conta bancaria vinculada. A vinculacao e feita apos criar a conta.</div>
+                    </div>
+                    <div class="field-row">
+                        <span class="field-name">createdAt</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==========================================
+                 ZONE: Fase 03 — Seguranca e Autenticacao
+                 ========================================== -->
+            <div class="zone-label" style="left: 60px; top: 1700px;">Fase 03 — Seguranca e Autenticacao</div>
+            <div class="zone-divider" style="left: 40px; top: 1740px; width: 1900px;"></div>
+
+            <!-- CARD SEC: AuthController -->
+            <div class="service-card accent-blue" style="left: 60px; top: 1780px;" id="card-authcontroller">
+                <div class="card-header">
+                    <div class="card-icon">&#128268;</div>
+                    <div class="card-header-text">
+                        <h3>AuthController</h3>
+                        <p>Endpoints de autenticacao</p>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p>Porta de entrada para registro, login e renovacao de tokens. Todos os endpoints sao publicos (nao exigem JWT).</p>
+                    <div>
+                        <span class="service-tag">POST /register (201)</span>
+                        <span class="service-tag">POST /login (200)</span>
+                        <span class="service-tag">POST /refresh (200)</span>
+                    </div>
+                    <span class="info-icon" style="margin-top:8px;">i</span>
+                    <div class="tooltip">Liberado no SecurityConfig: /api/v1/auth/**. Usa @Valid para validar DTOs. Retorna AuthResponse com accessToken + refreshToken.</div>
+                </div>
+            </div>
+
+            <!-- CARD SEC: Auth DTOs -->
+            <div class="service-card accent-green" style="left: 400px; top: 1780px;" id="card-authdtos">
+                <div class="card-header">
+                    <div class="card-icon">&#128230;</div>
+                    <div class="card-header-text">
+                        <h3>Auth DTOs</h3>
+                        <p>Objetos de autenticacao</p>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p>Requests validados com Bean Validation e response padronizado com tokens JWT.</p>
+                    <div>
+                        <span class="service-tag">RegisterRequest</span>
+                        <span class="service-tag">LoginRequest</span>
+                        <span class="service-tag">RefreshTokenRequest</span>
+                        <span class="service-tag">AuthResponse</span>
+                    </div>
+                    <span class="info-icon" style="margin-top:8px;">i</span>
+                    <div class="tooltip">RegisterRequest: @NoHtml em fullName, @Email, @Size(min=8) na senha. AuthResponse: accessToken, refreshToken, expiresIn (segundos).</div>
+                </div>
+            </div>
+
+            <!-- CARD SEC: AuthService -->
+            <div class="service-card accent-orange" style="left: 740px; top: 1780px;" id="card-authservice">
+                <div class="card-header">
+                    <div class="card-icon">&#9881;</div>
+                    <div class="card-header-text">
+                        <h3>AuthService</h3>
+                        <p>Logica de autenticacao</p>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p>Registro, login e refresh. Brute force protection: 5 tentativas → 30min lock. Mensagens genericas para impedir user enumeration.</p>
+                    <div>
+                        <span class="service-tag">register()</span>
+                        <span class="service-tag">login()</span>
+                        <span class="service-tag">refresh()</span>
+                        <span class="service-tag">Brute Force Protection</span>
+                    </div>
+                    <span class="info-icon" style="margin-top:8px;">i</span>
+                    <div class="tooltip">Padrao VALIDAR → EXECUTAR → AUDITAR → RETORNAR. Senhas BCrypt. Nunca diz "email nao existe" ou "senha errada" — sempre "Credenciais invalidas".</div>
+                </div>
+            </div>
+
+            <!-- CARD SEC: JwtService -->
+            <div class="service-card accent-purple" style="left: 1080px; top: 1780px;" id="card-jwtservice">
+                <div class="card-header">
+                    <div class="card-icon">&#128273;</div>
+                    <div class="card-header-text">
+                        <h3>JwtService</h3>
+                        <p>Geracao e validacao JWT</p>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p>Gera e valida tokens JWT com HMAC-SHA256. Access token (15min) + refresh token (7d) com rotacao.</p>
+                    <div>
+                        <span class="service-tag">generateAccessToken()</span>
+                        <span class="service-tag">generateRefreshToken()</span>
+                        <span class="service-tag">validateToken()</span>
+                        <span class="service-tag">HMAC-SHA256</span>
+                    </div>
+                    <span class="info-icon" style="margin-top:8px;">i</span>
+                    <div class="tooltip">Claims: sub (userId), email, role, type (access/refresh). Secret via env var JWT_SECRET. getTokenType() e getEmailFromToken() para validacao no refresh.</div>
+                </div>
+            </div>
+
+            <!-- CARD SEC: JwtAuthenticationFilter -->
+            <div class="service-card accent-red" style="left: 60px; top: 2000px;" id="card-jwtfilter">
+                <div class="card-header">
+                    <div class="card-icon">&#128737;</div>
+                    <div class="card-header-text">
+                        <h3>JwtAuthenticationFilter</h3>
+                        <p>Filtro de autenticacao JWT</p>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p>OncePerRequestFilter que extrai Bearer token, valida com JwtService e preenche o SecurityContext com a identidade do usuario.</p>
+                    <div>
+                        <span class="service-tag">Bearer token</span>
+                        <span class="service-tag">SecurityContext</span>
+                        <span class="service-tag">OncePerRequestFilter</span>
+                    </div>
+                    <span class="info-icon" style="margin-top:8px;">i</span>
+                    <div class="tooltip">Posicao na cadeia: ANTES do AuthorizationFilter. Se token invalido, nao seta SecurityContext → AuthorizationFilter rejeita → EntryPoint retorna 401 JSON.</div>
+                </div>
+            </div>
+
+            <!-- CARD SEC: RateLimitingFilter -->
+            <div class="service-card accent-yellow" style="left: 400px; top: 2000px;" id="card-ratelimit">
+                <div class="card-header">
+                    <div class="card-icon">&#9201;</div>
+                    <div class="card-header-text">
+                        <h3>RateLimitingFilter</h3>
+                        <p>Controle de requisicoes</p>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p>Token Bucket via Bucket4j. Limita por IP (auth) ou por usuario (demais). Headers: X-RateLimit-Limit, Remaining, Retry-After.</p>
+                    <div>
+                        <span class="service-tag">Auth: 5/min (IP)</span>
+                        <span class="service-tag">Transaction: 30/min</span>
+                        <span class="service-tag">Query: 60/min</span>
+                        <span class="service-tag">429 Too Many Requests</span>
+                    </div>
+                    <span class="info-icon" style="margin-top:8px;">i</span>
+                    <div class="tooltip">Bucket4j com greedy refill. ConcurrentHashMap de buckets por chave. Posicao: DEPOIS do JwtFilter (precisa do SecurityContext para saber o usuario).</div>
+                </div>
+            </div>
+
+            <!-- CARD SEC: SecurityEventLogger -->
+            <div class="service-card accent-teal" style="left: 740px; top: 2000px;" id="card-seclogger">
+                <div class="card-header">
+                    <div class="card-icon">&#128065;</div>
+                    <div class="card-header-text">
+                        <h3>SecurityEventLogger</h3>
+                        <p>Logs de seguranca</p>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p>Logger dedicado com prefixo [SECURITY]. Registra IP + User-Agent automaticamente via RequestContextHolder.</p>
+                    <div>
+                        <span class="service-tag">LOGIN_SUCCESS/FAILED</span>
+                        <span class="service-tag">ACCOUNT_LOCKED</span>
+                        <span class="service-tag">REGISTRATION</span>
+                        <span class="service-tag">TOKEN_REFRESH</span>
+                    </div>
+                    <span class="info-icon" style="margin-top:8px;">i</span>
+                    <div class="tooltip">7 tipos de evento. Facilita busca no Kibana/Grafana por "[SECURITY]". Usado pelo AuthService em todos os eventos sensiveis.</div>
+                </div>
+            </div>
+
+            <!-- CARD SEC: EncryptedStringConverter -->
+            <div class="service-card accent-lightblue" style="left: 1080px; top: 2000px;" id="card-encryption">
+                <div class="card-header">
+                    <div class="card-icon">&#128272;</div>
+                    <div class="card-header-text">
+                        <h3>EncryptedStringConverter</h3>
+                        <p>Criptografia AES-256-GCM</p>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p>AttributeConverter JPA que cifra ao salvar e decifra ao ler. Transparente para Service e Controller.</p>
+                    <div>
+                        <span class="service-tag">AES-256-GCM</span>
+                        <span class="service-tag">IV aleatorio</span>
+                        <span class="service-tag">Auth Tag (integridade)</span>
+                        <span class="service-tag">Chave via env var</span>
+                    </div>
+                    <span class="info-icon" style="margin-top:8px;">i</span>
+                    <div class="tooltip">Aplicado em Account.holderDocument e PixKey.keyValue. Base64(IV + ciphertext + authTag). Chave: ENCRYPTION_KEY env var. Fail-fast se chave != 32 bytes.</div>
+                </div>
+            </div>
+
+            <!-- CARD SEC: NoHtml Validator -->
+            <div class="service-card accent-pink" style="left: 1420px; top: 2000px;" id="card-nohtml">
+                <div class="card-header">
+                    <div class="card-icon">&#128737;</div>
+                    <div class="card-header-text">
+                        <h3>@NoHtml + Validator</h3>
+                        <p>Protecao anti-XSS</p>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p>Annotation customizada + ConstraintValidator. Rejeita HTML tags, event handlers e javascript: URLs em campos de texto.</p>
+                    <div>
+                        <span class="service-tag">Bean Validation</span>
+                        <span class="service-tag">Regex detection</span>
+                        <span class="service-tag">Reject strategy</span>
+                    </div>
+                    <span class="info-icon" style="margin-top:8px;">i</span>
+                    <div class="tooltip">Aplicado em holderName (Account) e fullName (User). Detecta: &lt;script&gt;, onclick=, javascript:, HTML entities. API bancaria nao precisa de HTML em nenhum campo.</div>
                 </div>
             </div>
 
@@ -1505,7 +1811,7 @@
 
         // Mundo maior para caber infra + dominio
         const WORLD_WIDTH = 2200;
-        const WORLD_HEIGHT = 1900;
+        const WORLD_HEIGHT = 2500;
 
         // ========================================
         // Aplicar transformacao
@@ -1715,6 +2021,7 @@
                 { from: 'card-pixkey', to: 'card-account', label: 'N:1' },
                 { from: 'card-transaction', to: 'card-account', label: 'N:1 (sender)' },
                 { from: 'card-webhook', to: 'card-account', label: 'N:1' },
+                { from: 'card-user', to: 'card-account', label: '1:1 (nullable)' },
             ];
 
             // FK lines
@@ -1823,6 +2130,51 @@
             ];
 
             serviceRelations.forEach(rel => {
+                const start = getCardEdgeFrom(rel.from, rel.to);
+                const end = getCardEdge(rel.from, rel.to);
+                const midX = (start.x + end.x) / 2;
+                const midY = (start.y + end.y) / 2;
+
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', start.x);
+                line.setAttribute('y1', start.y);
+                line.setAttribute('x2', end.x);
+                line.setAttribute('y2', end.y);
+                line.setAttribute('class', 'rel-line rel-line-fk');
+                line.setAttribute('marker-end', 'url(#arrowhead)');
+                relSvg.appendChild(line);
+
+                if (rel.label) {
+                    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    text.setAttribute('x', midX);
+                    text.setAttribute('y', midY - 6);
+                    text.setAttribute('class', 'rel-label');
+                    text.setAttribute('text-anchor', 'middle');
+                    text.textContent = rel.label;
+                    relSvg.appendChild(text);
+                }
+            });
+
+            // ========================================
+            // Fase 03 — Seguranca e Autenticacao relationships
+            // ========================================
+            const securityRelations = [
+                { from: 'card-authcontroller', to: 'card-authservice', label: 'delega' },
+                { from: 'card-authcontroller', to: 'card-authdtos', label: 'recebe/retorna' },
+                { from: 'card-authservice', to: 'card-jwtservice', label: 'gera tokens' },
+                { from: 'card-authservice', to: 'card-user', label: 'usa Repository' },
+                { from: 'card-authservice', to: 'card-seclogger', label: 'registra eventos' },
+                { from: 'card-authservice', to: 'card-auditservice', label: 'audita' },
+                { from: 'card-jwtfilter', to: 'card-jwtservice', label: 'valida token' },
+                { from: 'card-jwtfilter', to: 'card-authcontroller', label: 'filtra antes' },
+                { from: 'card-ratelimit', to: 'card-authcontroller', label: 'limita' },
+                { from: 'card-encryption', to: 'card-account', label: 'cifra holderDocument' },
+                { from: 'card-encryption', to: 'card-pixkey', label: 'cifra keyValue' },
+                { from: 'card-security', to: 'card-jwtfilter', label: 'registra filtro' },
+                { from: 'card-security', to: 'card-ratelimit', label: 'registra filtro' },
+            ];
+
+            securityRelations.forEach(rel => {
                 const start = getCardEdgeFrom(rel.from, rel.to);
                 const end = getCardEdge(rel.from, rel.to);
                 const midX = (start.x + end.x) / 2;

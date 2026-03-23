@@ -49,3 +49,7 @@ logs/
 
 # Claude Code
 .claude/
+
+# ---- Conteúdo pessoal (não público) ----
+linkedin-posts/
+docs/
